@@ -1,0 +1,25 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.timetable-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.controls {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.schedule-display {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+}
