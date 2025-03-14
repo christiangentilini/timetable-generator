@@ -447,89 +447,50 @@ if (!$timetable) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('logoUploadBox').addEventListener('click', function() {
-            document.getElementById('logoUpload').click();
+        document.addEventListener('DOMContentLoaded', function() {
+            const timetableId = <?php echo $timetable_id; ?>;
+            const updateFields = ['competitionTitle', 'competitionSubtitle', 'competitionDescription1', 'competitionDescription2', 'competitionDisclaimer'];
+            const fieldMapping = {
+                'competitionTitle': 'titolo',
+                'competitionSubtitle': 'sottotitolo',
+                'competitionDescription1': 'desc1',
+                'competitionDescription2': 'desc2',
+                'competitionDisclaimer': 'disclaimer'
+            };
+
+            let updateTimeout;
+            updateFields.forEach(fieldId => {
+                const element = document.getElementById(fieldId);
+                if (element) {
+                    element.addEventListener('input', function(e) {
+                        clearTimeout(updateTimeout);
+                        const field = fieldMapping[fieldId];
+                        const value = e.target.value;
+
+                        updateTimeout = setTimeout(() => {
+                            fetch('/api/update_timetable.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    field: field,
+                                    value: value,
+                                    timetable_id: timetableId
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (!data.success) {
+                                    console.error('Update failed:', data.error);
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                        }, 500);
+                    });
+                }
+            });
         });
-        document.getElementById('logoUpload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const logoPreview = document.getElementById('logoPreview');
-                    const uploadText = document.getElementById('uploadText');
-                    logoPreview.src = e.target.result;
-                    logoPreview.classList.remove('d-none');
-                    uploadText.classList.add('d-none');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        document.getElementById('competitionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const isDescriptive = document.getElementById('descriptiveRow').checked;
-            const time = document.getElementById('time').value;
-
-            const row = document.createElement('tr');
-            if (isDescriptive) {
-                row.classList.add('descriptive-row');
-                const description = document.getElementById('description').value;
-                row.innerHTML = `
-                    <td>${time}</td>
-                    <td colspan="9">${description}</td>
-                `;
-            } else {
-                const discipline = document.getElementById('discipline').value;
-                const category = document.getElementById('category').value;
-                const classValue = document.getElementById('class').value;
-                const type = document.getElementById('type').value;
-                const round = document.getElementById('round').value;
-                const startNumber = document.getElementById('startNumber').value;
-                const endNumber = document.getElementById('endNumber').value;
-                const dances = document.getElementById('dances').value;
-                const heats = document.getElementById('heats').value;
-
-                row.innerHTML = `
-                    <td>${time}</td>
-                    <td>${discipline}</td>
-                    <td>${category}</td>
-                    <td>${classValue}</td>
-                    <td>${type}</td>
-                    <td>${round}</td>
-                    <td>${startNumber}</td>
-                    <td>${endNumber}</td>
-                    <td>${dances}</td>
-                    <td>${heats}</td>
-                `;
-            }
-
-            document.getElementById('scheduleBody').appendChild(row);
-            this.reset();
-            document.getElementById('round').value = '1° Turno Finale';
-            document.getElementById('normalRow').checked = true;
-            updateFormFields();
-        });
-
-        function updateFormFields() {
-            const isDescriptive = document.getElementById('descriptiveRow').checked;
-            const normalFields = document.querySelector('.normal-fields');
-            const descriptiveFields = document.querySelector('.descriptive-fields');
-
-            if (isDescriptive) {
-                normalFields.classList.add('hidden');
-                descriptiveFields.classList.remove('hidden');
-            } else {
-                normalFields.classList.remove('hidden');
-                descriptiveFields.classList.add('hidden');
-            }
-        }
-
-        // Initialize form fields on page load
-        document.querySelectorAll('input[name="rowType"]').forEach(radio => {
-            radio.addEventListener('change', updateFormFields);
-        });
-        updateFormFields();
     </script>
 </body>
 </html>
