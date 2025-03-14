@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check if username or email already exists
     $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-    $stmt->bind_param("ss", $username, $email);
+    $bindParams = array(&$username, &$email);
+    call_user_func_array([$stmt, 'bind_param'], array_merge(array("ss"), $bindParams));
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows > 0) {
@@ -92,6 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container">
             <a class="navbar-brand" href="index.php">Timetable Generator <span class="version-text">v1.0</span></a>
+            <?php if (isset($_SESSION['user_id'])): ?>
+            <div class="d-flex align-items-center">
+                <?php if (isset($_SESSION['profile_path']) && $_SESSION['profile_path']): ?>
+                    <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                <?php else: ?>
+                    <i class="bi bi-person-circle text-white" style="font-size: 2rem;"></i>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </nav>
 

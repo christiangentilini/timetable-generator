@@ -47,10 +47,12 @@ require_once 'config/session_check.php';
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav align-items-center">
                     <li class="nav-item dropdown">
-                        <a class="nav-link" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="profile-image">
-                                <i class="bi bi-person"></i>
-                            </div>
+                        <a class="nav-link profile-image" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <?php if (isset($_SESSION['profile_path']) && $_SESSION['profile_path']): ?>
+                                <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>" alt="Profile" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                            <?php else: ?>
+                                <i class="bi bi-person-circle"></i>
+                            <?php endif; ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                             <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
@@ -66,7 +68,7 @@ require_once 'config/session_check.php';
                             <li><a class="dropdown-item" href="cronologici.php">Cronologici</a></li>
                             <li><a class="dropdown-item" href="nuovo.php">Nuovo Cronologico</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item active" href="definizioni.php">Definizioni</a></li>
+                            <li><a class="dropdown-item" href="definizioni.php">Definizioni</a></li>
                             <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                         </ul>
                     </li>

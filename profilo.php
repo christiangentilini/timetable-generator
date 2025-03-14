@@ -1,6 +1,117 @@
 <?php
 require_once 'config/database.php';
 require_once 'config/session_check.php';
+
+$user_id = $_SESSION['user_id'];
+$success = false;
+$errors = [];
+
+// Fetch current user data
+$stmt = $conn->prepare("SELECT username, email, profile_path FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$stmt->close();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['password_confirm'];
+
+    // Validation
+    if (empty($username)) {
+        $errors[] = "Il nome utente è obbligatorio";
+    }
+    if (empty($email)) {
+        $errors[] = "L'email è obbligatoria";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Formato email non valido";
+    }
+
+    // Check if username or email already exists (excluding current user)
+    $stmt = $conn->prepare("SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?");
+    $stmt->bind_param("ssi", $username, $email, $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $errors[] = "Nome utente o email già in uso";
+    }
+    $stmt->close();
+
+    // Handle profile image upload
+    $profile_path = $user['profile_path'];
+    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+        $file_type = $_FILES['profile_image']['type'];
+        
+        if (!in_array($file_type, $allowed_types)) {
+            $errors[] = "Tipo di file non supportato. Utilizzare JPG, PNG o GIF";
+        } else {
+            $extension = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
+            $new_filename = $username . '-profile.' . $extension;
+            $upload_dir = __DIR__ . '/src/users/' . $username . '/logo/';
+            $upload_path = $upload_dir . $new_filename;
+
+            if (!file_exists($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+
+            if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $upload_path)) {
+                $profile_path = 'src/users/' . $username . '/logo/' . $new_filename;
+            } else {
+                $errors[] = "Errore durante il caricamento dell'immagine";
+            }
+        }
+    }
+
+    if (empty($errors)) {
+        $sql = "UPDATE users SET username = ?, email = ?";
+        $types = "ss";
+        $bindParams = array(&$types, &$username, &$email);
+    
+        if (!empty($password)) {
+            if (strlen($password) < 8) {
+                $errors[] = "La password deve essere di almeno 8 caratteri";
+            } elseif ($password !== $confirm_password) {
+                $errors[] = "Le password non coincidono";
+            } else {
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $sql .= ", password = ?";
+                $types .= "s";
+                $bindParams[] = &$hashed_password;
+            }
+        }
+    
+        if ($profile_path !== $user['profile_path']) {
+            $sql .= ", profile_path = ?";
+            $types .= "s";
+            $bindParams[] = &$profile_path;
+        }
+    
+        $sql .= " WHERE id = ?";
+        $types .= "i";
+        $bindParams[] = &$user_id;
+    
+        if (empty($errors)) {
+            $stmt = $conn->prepare($sql);
+            call_user_func_array([$stmt, 'bind_param'], $bindParams);
+            
+            if ($stmt->execute()) {
+                $_SESSION['username'] = $username;
+                $success = true;
+                // Refresh user data
+                $user['username'] = $username;
+                $user['email'] = $email;
+                $user['profile_path'] = $profile_path;
+            } else {
+                $errors[] = "Errore durante l'aggiornamento del profilo";
+            }
+            $stmt->close();
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -34,6 +145,29 @@ require_once 'config/session_check.php';
             justify-content: center;
             margin-left: 1rem;
             color: #6c757d;
+            overflow: hidden;
+        }
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: #6c757d;
+            overflow: hidden;
+        }
+        .profile-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -47,13 +181,15 @@ require_once 'config/session_check.php';
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav align-items-center">
                     <li class="nav-item dropdown">
-                        <a class="nav-link" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="profile-image">
-                                <i class="bi bi-person"></i>
-                            </div>
+                        <a class="nav-link profile-image" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <?php if (isset($_SESSION['profile_path']) && $_SESSION['profile_path']): ?>
+                                <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>" alt="Profile" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                            <?php else: ?>
+                                <i class="bi bi-person-circle"></i>
+                            <?php endif; ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-                            <li><a class="dropdown-item active" href="profilo.php">Profilo</a></li>
+                            <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="logout.php">Logout</a></li>
                         </ul>
@@ -67,7 +203,7 @@ require_once 'config/session_check.php';
                             <li><a class="dropdown-item" href="nuovo.php">Nuovo Cronologico</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="definizioni.php">Definizioni</a></li>
-                            <li><a class="dropdown-item active" href="profilo.php">Profilo</a></li>
+                            <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -77,24 +213,55 @@ require_once 'config/session_check.php';
 
     <div class="container">
         <h2 class="mb-4">Profilo Utente</h2>
+
+        <?php if ($success): ?>
+            <div class="alert alert-success" role="alert">
+                Profilo aggiornato con successo!
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?php echo htmlspecialchars($error); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
         <div class="card">
             <div class="card-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="userName" class="form-label">Nome Utente</label>
-                        <input type="text" class="form-control" id="userName" required>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="text-center mb-4">
+                        <div class="profile-preview">
+                            <?php if ($user['profile_path']): ?>
+                                <img src="<?php echo htmlspecialchars($user['profile_path']); ?>" alt="Profile Preview" id="profilePreview">
+                            <?php else: ?>
+                                <i class="bi bi-person" style="font-size: 4rem;"></i>
+                            <?php endif; ?>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profile_image" class="form-label">Immagine Profilo</label>
+                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/jpeg,image/png,image/gif">
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="userEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="userEmail" required>
+                        <label for="username" class="form-label">Nome Utente</label>
+                        <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
                     </div>
                     <div class="mb-3">
-                        <label for="userPassword" class="form-label">Nuova Password</label>
-                        <input type="password" class="form-control" id="userPassword">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
                     </div>
                     <div class="mb-3">
-                        <label for="userPasswordConfirm" class="form-label">Conferma Password</label>
-                        <input type="password" class="form-control" id="userPasswordConfirm">
+                        <label for="password" class="form-label">Nuova Password</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                        <div class="form-text">Lascia vuoto per mantenere la password attuale</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_confirm" class="form-label">Conferma Password</label>
+                        <input type="password" class="form-control" id="password_confirm" name="password_confirm">
                     </div>
                     <button type="submit" class="btn btn-primary">Salva Modifiche</button>
                 </form>
@@ -103,5 +270,25 @@ require_once 'config/session_check.php';
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('profile_image').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('profilePreview');
+                    if (!preview) {
+                        const newPreview = document.createElement('img');
+                        newPreview.id = 'profilePreview';
+                        newPreview.alt = 'Profile Preview';
+                        const previewContainer = document.querySelector('.profile-preview');
+                        previewContainer.innerHTML = '';
+                        previewContainer.appendChild(newPreview);
+                    }
+                    document.getElementById('profilePreview').src = e.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    </script>
 </body>
 </html>
