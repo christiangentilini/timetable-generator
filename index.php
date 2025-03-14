@@ -1,3 +1,7 @@
+<?php
+require_once 'config/database.php';
+require_once 'config/session_check.php';
+?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -67,14 +71,14 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Timetable Generator <span class="version-text">v1.0</span></a>
+            <a class="navbar-brand" href="index.php">Timetable Generator <span class="version-text">v1.0</span></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="profilo.html">
+                        <a class="nav-link" href="profilo.php">
                             <div class="profile-image">
                                 <i class="bi bi-person"></i>
                             </div>
@@ -85,11 +89,11 @@
                             <i class="bi bi-list"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="cronologici.html">Cronologici</a></li>
-                            <li><a class="dropdown-item" href="nuovo.html">Nuovo Cronologico</a></li>
+                            <li><a class="dropdown-item" href="cronologici.php">Cronologici</a></li>
+                            <li><a class="dropdown-item" href="nuovo.php">Nuovo Cronologico</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="definizioni.html">Definizioni</a></li>
-                            <li><a class="dropdown-item" href="profilo.html">Profilo</a></li>
+                            <li><a class="dropdown-item" href="definizioni.php">Definizioni</a></li>
+                            <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -100,7 +104,7 @@
     <div class="container">
         <div class="row justify-content-center g-4">
             <div class="col-md-4">
-                <a href="nuovo.html" class="text-decoration-none text-dark">
+                <a href="nuovo.php" class="text-decoration-none text-dark">
                     <div class="card action-box">
                         <i class="bi bi-plus-circle"></i>
                         <h4>Nuovo Cronologico</h4>
@@ -109,7 +113,7 @@
                 </a>
             </div>
             <div class="col-md-4">
-                <a href="cronologici.html" class="text-decoration-none text-dark">
+                <a href="cronologici.php" class="text-decoration-none text-dark">
                     <div class="card action-box">
                         <i class="bi bi-clock-history"></i>
                         <h4>Cronologici</h4>
@@ -118,7 +122,7 @@
                 </a>
             </div>
             <div class="col-md-4">
-                <a href="definizioni.html" class="text-decoration-none text-dark">
+                <a href="definizioni.php" class="text-decoration-none text-dark">
                     <div class="card action-box">
                         <i class="bi bi-gear"></i>
                         <h4>Definizioni</h4>
@@ -130,7 +134,7 @@
 
         <div class="row justify-content-center">
             <div class="col-md-4">
-                <a href="profilo.html" class="text-decoration-none text-dark">
+                <a href="profilo.php" class="text-decoration-none text-dark">
                     <div class="card profile-box">
                         <i class="bi bi-person-circle"></i>
                         <h5 class="mb-0">Profilo</h5>

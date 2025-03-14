@@ -1,3 +1,7 @@
+<?php
+require_once 'config/database.php';
+require_once 'config/session_check.php';
+?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -36,14 +40,14 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Timetable Generator <span class="version-text">v1.0</span></a>
+            <a class="navbar-brand" href="index.php">Timetable Generator <span class="version-text">v1.0</span></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="profilo.html">
+                        <a class="nav-link" href="profilo.php">
                             <div class="profile-image">
                                 <i class="bi bi-person"></i>
                             </div>
@@ -54,11 +58,11 @@
                             <i class="bi bi-list"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="cronologici.html">Cronologici</a></li>
-                            <li><a class="dropdown-item" href="nuovo.html">Nuovo Cronologico</a></li>
+                            <li><a class="dropdown-item" href="cronologici.php">Cronologici</a></li>
+                            <li><a class="dropdown-item" href="nuovo.php">Nuovo Cronologico</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item active" href="definizioni.html">Definizioni</a></li>
-                            <li><a class="dropdown-item" href="profilo.html">Profilo</a></li>
+                            <li><a class="dropdown-item active" href="definizioni.php">Definizioni</a></li>
+                            <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                         </ul>
                     </li>
                 </ul>

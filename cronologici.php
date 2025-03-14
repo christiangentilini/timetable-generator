@@ -1,9 +1,13 @@
+<?php
+require_once 'config/database.php';
+require_once 'config/session_check.php';
+?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profilo - Timetable Generator</title>
+    <title>Cronologici - Timetable Generator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
@@ -36,14 +40,14 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Timetable Generator <span class="version-text">v1.0</span></a>
+            <a class="navbar-brand" href="index.php">Timetable Generator <span class="version-text">v1.0</span></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="profilo.html">
+                        <a class="nav-link" href="profilo.php">
                             <div class="profile-image">
                                 <i class="bi bi-person"></i>
                             </div>
@@ -54,11 +58,11 @@
                             <i class="bi bi-list"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="cronologici.html">Cronologici</a></li>
-                            <li><a class="dropdown-item" href="nuovo.html">Nuovo Cronologico</a></li>
+                            <li><a class="dropdown-item active" href="cronologici.php">Cronologici</a></li>
+                            <li><a class="dropdown-item" href="nuovo.php">Nuovo Cronologico</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="definizioni.html">Definizioni</a></li>
-                            <li><a class="dropdown-item active" href="profilo.html">Profilo</a></li>
+                            <li><a class="dropdown-item" href="definizioni.php">Definizioni</a></li>
+                            <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -67,28 +71,10 @@
     </nav>
 
     <div class="container">
-        <h2 class="mb-4">Profilo Utente</h2>
+        <h2 class="mb-4">Cronologici</h2>
         <div class="card">
             <div class="card-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="userName" class="form-label">Nome Utente</label>
-                        <input type="text" class="form-control" id="userName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="userEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="userEmail" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="userPassword" class="form-label">Nuova Password</label>
-                        <input type="password" class="form-control" id="userPassword">
-                    </div>
-                    <div class="mb-3">
-                        <label for="userPasswordConfirm" class="form-label">Conferma Password</label>
-                        <input type="password" class="form-control" id="userPasswordConfirm">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Salva Modifiche</button>
-                </form>
+                <p>Lista dei cronologici esistenti...</p>
             </div>
         </div>
     </div>
