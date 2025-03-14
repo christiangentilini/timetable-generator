@@ -28,7 +28,6 @@ require_once 'config/session_check.php';
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background-color: #e9ecef;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -106,15 +105,14 @@ require_once 'config/session_check.php';
             margin-left: 0.75rem;
         }
         .profile-image {
-            width: 32px;
-            height: 32px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            background-color: #e9ecef;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-left: 1rem;
-            color: #6c757d;
+            overflow: hidden;
         }
         .card {
             margin-bottom: 1rem;
@@ -255,7 +253,7 @@ require_once 'config/session_check.php';
                     <li class="nav-item dropdown">
                         <a class="nav-link profile-image" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <?php if (isset($_SESSION['profile_path']) && $_SESSION['profile_path']): ?>
-                                <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>" alt="Profile" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>?v=<?php echo time(); ?>" alt="Profile" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
                             <?php else: ?>
                                 <i class="bi bi-person-circle"></i>
                             <?php endif; ?>

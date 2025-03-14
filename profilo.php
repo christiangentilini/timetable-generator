@@ -54,6 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $upload_dir = __DIR__ . '/src/users/' . $username . '/logo/';
             $upload_path = $upload_dir . $new_filename;
 
+            // Delete old profile image if it exists
+            if ($profile_path && file_exists(__DIR__ . '/' . $profile_path)) {
+                unlink(__DIR__ . '/' . $profile_path);
+            }
+
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0755, true);
             }
@@ -100,11 +105,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($stmt->execute()) {
                 $_SESSION['username'] = $username;
+                $_SESSION['profile_path'] = $profile_path;
                 $success = true;
                 // Refresh user data
                 $user['username'] = $username;
                 $user['email'] = $email;
                 $user['profile_path'] = $profile_path;
+                
+                // Add cache control headers
+                header("Cache-Control: no-cache, must-revalidate");
+                header("Pragma: no-cache");
             } else {
                 $errors[] = "Errore durante l'aggiornamento del profilo";
             }
@@ -136,15 +146,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-left: 0.5rem;
         }
         .profile-image {
-            width: 32px;
-            height: 32px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            background-color: #e9ecef;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-left: 1rem;
-            color: #6c757d;
             overflow: hidden;
         }
         .profile-image img {
@@ -183,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <li class="nav-item dropdown">
                         <a class="nav-link profile-image" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <?php if (isset($_SESSION['profile_path']) && $_SESSION['profile_path']): ?>
-                                <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>" alt="Profile" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>?v=<?php echo time(); ?>" alt="Profile" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
                             <?php else: ?>
                                 <i class="bi bi-person-circle"></i>
                             <?php endif; ?>
@@ -236,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="text-center mb-4">
                         <div class="profile-preview">
                             <?php if ($user['profile_path']): ?>
-                                <img src="<?php echo htmlspecialchars($user['profile_path']); ?>" alt="Profile Preview" id="profilePreview">
+                                <img src="<?php echo htmlspecialchars($user['profile_path']); ?>?v=<?php echo time(); ?>" alt="Profile Preview" id="profilePreview">
                             <?php else: ?>
                                 <i class="bi bi-person" style="font-size: 4rem;"></i>
                             <?php endif; ?>
