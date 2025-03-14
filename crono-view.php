@@ -342,31 +342,38 @@ if (!$timetable) {
                     </div>
                     <div class="card-body">
                         <form id="competitionForm">
-                            <div class="row mb-3">
-                                <div class="col-12">
-                                    <div class="btn-group btn-group-toggle w-100" role="group" aria-label="Tipo riga">
-                                        <input type="radio" class="btn-check" name="rowType" id="normalRow" value="normal" checked>
-                                        <label class="btn btn-outline-primary" for="normalRow">Normale</label>
-                                        <input type="radio" class="btn-check" name="rowType" id="descriptiveRow" value="descriptive">
-                                        <label class="btn btn-outline-primary" for="descriptiveRow">Descrittiva</label>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="row g-3">
                                 <div class="col-md-2">
                                     <label for="time" class="form-label small mb-1">Orario</label>
                                     <input type="time" class="form-control form-control-sm" id="time" required>
                                 </div>
-                                <div class="descriptive-fields hidden">
-                                    <div class="col-md-10">
+                                <div class="col-md-10">
+                                    <label class="form-label small mb-1">Tipo di riga</label>
+                                    <div class="btn-group" role="group" aria-label="Tipo di riga">
+                                        <input type="radio" class="btn-check" name="rowType" id="normalRowType" value="normal" checked>
+                                        <label class="btn btn-outline-primary btn-sm" for="normalRowType">Normale</label>
+                                        <input type="radio" class="btn-check" name="rowType" id="descriptiveRowType" value="descriptive">
+                                        <label class="btn btn-outline-primary btn-sm" for="descriptiveRowType">Descrittiva</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Descriptive Row Section -->
+                            <div class="descriptive-fields hidden" id="descriptiveFields">
+                                <div class="row g-3">
+                                    <div class="col-md-12">
                                         <label for="description" class="form-label small mb-1">Descrizione</label>
                                         <input type="text" class="form-control form-control-sm" id="description">
                                     </div>
                                 </div>
-                                <div class="normal-fields row g-3">
+                            </div>
+                            
+                            <!-- Normal Row Section -->
+                            <div class="normal-fields" id="normalFields">
+                                <div class="row g-3">
                                     <div class="col-md-2">
                                         <label for="discipline" class="form-label small mb-1">Disciplina</label>
-                                        <input type="text" class="form-control form-control-sm" id="discipline" required>
+                                        <input type="text" class="form-control form-control-sm" id="discipline">
                                     </div>
                                     <div class="col-md-2">
                                         <label for="category" class="form-label small mb-1">Categoria</label>
@@ -390,23 +397,26 @@ if (!$timetable) {
                                     </div>
                                     <div class="col-md-2">
                                         <label for="startNumber" class="form-label small mb-1">Da</label>
-                                        <input type="number" class="form-control form-control-sm" id="startNumber" min="1" required>
+                                        <input type="number" class="form-control form-control-sm" id="startNumber" min="1">
                                     </div>
                                     <div class="col-md-2">
                                         <label for="endNumber" class="form-label small mb-1">A</label>
-                                        <input type="number" class="form-control form-control-sm" id="endNumber" min="1" required>
+                                        <input type="number" class="form-control form-control-sm" id="endNumber" min="1">
                                     </div>
                                     <div class="col-md-2">
                                         <label for="dances" class="form-label small mb-1">Balli</label>
-                                        <input type="number" class="form-control form-control-sm" id="dances" min="1" required>
+                                        <input type="number" class="form-control form-control-sm" id="dances" min="1">
                                     </div>
                                     <div class="col-md-2">
                                         <label for="heats" class="form-label small mb-1">Batterie</label>
-                                        <input type="number" class="form-control form-control-sm" id="heats" min="1" required>
+                                        <input type="number" class="form-control form-control-sm" id="heats" min="1">
                                     </div>
                                 </div>
-                                <div class="col-12 mt-3">
-                                    <button type="submit" class="btn btn-primary btn-sm">Aggiungi</button>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <button type="button" id="addRowBtn" class="btn btn-primary btn-sm">Aggiungi Riga</button>
                                 </div>
                             </div>
                         </form>
@@ -457,6 +467,176 @@ if (!$timetable) {
                 'competitionDescription2': 'desc2',
                 'competitionDisclaimer': 'disclaimer'
             };
+
+            // Toggle between normal and descriptive fields
+            const normalRowType = document.getElementById('normalRowType');
+            const descriptiveRowType = document.getElementById('descriptiveRowType');
+            const normalFields = document.getElementById('normalFields');
+            const descriptiveFields = document.getElementById('descriptiveFields');
+
+            normalRowType.addEventListener('change', function() {
+                if (this.checked) {
+                    normalFields.classList.remove('hidden');
+                    descriptiveFields.classList.add('hidden');
+                }
+            });
+
+            descriptiveRowType.addEventListener('change', function() {
+                if (this.checked) {
+                    descriptiveFields.classList.remove('hidden');
+                    normalFields.classList.add('hidden');
+                }
+            });
+
+            // Load existing timetable details
+            function loadTimetableDetails() {
+                fetch(`/api/save_timetable_detail.php?id=${timetableId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        timetable_id: timetableId,
+                        entry_type: 'load'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTimetableDisplay(data.rows);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            // Update timetable display
+            function updateTimetableDisplay(rows) {
+                const scheduleBody = document.getElementById('scheduleBody');
+                scheduleBody.innerHTML = '';
+                
+                rows.forEach(row => {
+                    const tr = document.createElement('tr');
+                    if (row.entry_type === 'descriptive') {
+                        tr.classList.add('descriptive-row');
+                        tr.innerHTML = `
+                            <td>${row.time_slot}</td>
+                            <td colspan="9">${row.description}</td>
+                        `;
+                    } else {
+                        tr.innerHTML = `
+                            <td>${row.time_slot}</td>
+                            <td>${row.discipline || ''}</td>
+                            <td>${row.category || ''}</td>
+                            <td>${row.class_name || ''}</td>
+                            <td>${row.type || ''}</td>
+                            <td>${row.turn || ''}</td>
+                            <td>${row.da || ''}</td>
+                            <td>${row.a || ''}</td>
+                            <td>${row.balli || ''}</td>
+                            <td>${row.batterie || ''}</td>
+                        `;
+                    }
+                    scheduleBody.appendChild(tr);
+                });
+            }
+
+            // Load initial data
+            loadTimetableDetails();
+
+            // Handle row submission
+            document.getElementById('addRowBtn').addEventListener('click', function() {
+                const timeSlot = document.getElementById('time').value;
+                const rowType = document.querySelector('input[name="rowType"]:checked').value;
+                
+                if (!timeSlot) {
+                    alert('Orario è richiesto');
+                    return;
+                }
+                
+                let formData = {
+                    timetable_id: timetableId,
+                    entry_type: rowType,
+                    time_slot: timeSlot
+                };
+                
+                if (rowType === 'descriptive') {
+                    const description = document.getElementById('description').value;
+                    if (!description) {
+                        alert('Descrizione è richiesta per le righe descrittive');
+                        return;
+                    }
+                    formData.description = description;
+                } else {
+                    const discipline = document.getElementById('discipline').value;
+                    const category = document.getElementById('category').value;
+                    const class_name = document.getElementById('class').value;
+                    const type = document.getElementById('type').value;
+                    const turn = document.getElementById('round').value;
+                    const da = document.getElementById('startNumber').value;
+                    const a = document.getElementById('endNumber').value;
+                    const balli = document.getElementById('dances').value;
+                    const batterie = document.getElementById('heats').value;
+                    
+                    if (!discipline || !da || !a || !balli || !batterie) {
+                        alert('Tutti i campi contrassegnati sono obbligatori');
+                        return;
+                    }
+                    
+                    Object.assign(formData, {
+                        discipline,
+                        category,
+                        class_name,
+                        type,
+                        turn,
+                        da,
+                        a,
+                        balli,
+                        batterie
+                    });
+                }
+                
+                saveFormData(formData);
+            });
+
+            // Common function to save form data
+            function saveFormData(formData) {
+                fetch('/api/save_timetable_detail.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTimetableDisplay(data.rows);
+                        resetForm();
+                    } else {
+                        console.error('Save failed:', data.error);
+                        alert('Errore durante il salvataggio: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Errore durante il salvataggio');
+                });
+            }
+
+            // Reset form fields
+            function resetForm() {
+                document.getElementById('time').value = '';
+                document.getElementById('description').value = '';
+                document.getElementById('discipline').value = '';
+                document.getElementById('category').value = '';
+                document.getElementById('class').value = '';
+                document.getElementById('type').value = 'Solo';
+                document.getElementById('round').value = '1° Turno Finale';
+                document.getElementById('startNumber').value = '';
+                document.getElementById('endNumber').value = '';
+                document.getElementById('dances').value = '';
+                document.getElementById('heats').value = '';
+            }
 
             let updateTimeout;
             updateFields.forEach(fieldId => {
