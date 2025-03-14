@@ -72,7 +72,7 @@ require_once 'config/session_check.php';
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="cronologici.php">Cronologici</a></li>
-                            <li><a class="dropdown-item" href="nuovo.php">Nuovo Cronologico</a></li>
+                            <li><a class="dropdown-item" href="crono-view.php">Nuovo Cronologico</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="definizioni.php">Definizioni</a></li>
                             <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>

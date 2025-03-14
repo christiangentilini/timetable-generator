@@ -1,6 +1,25 @@
 <?php
 require_once 'config/database.php';
 require_once 'config/session_check.php';
+
+// Get timetable ID from URL
+$timetable_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+// Fetch timetable data
+$timetable = null;
+if ($timetable_id > 0) {
+    $stmt = $conn->prepare("SELECT * FROM timetables WHERE id = ? AND user_created = ?");
+    $stmt->bind_param("ii", $timetable_id, $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $timetable = $result->fetch_assoc();
+    $stmt->close();
+}
+
+if (!$timetable) {
+    header("Location: cronologici.php");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -293,17 +312,22 @@ require_once 'config/session_check.php';
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-9">
-                                <input type="text" class="form-control form-control-lg mb-2" id="competitionTitle" placeholder="Titolo della Competizione">
-                                <input type="text" class="form-control mb-2" id="competitionSubtitle" placeholder="Sottotitolo">
-                                <textarea class="form-control mb-2" id="competitionDescription1" rows="1" placeholder="Prima riga di descrizione"></textarea>
-                                <textarea class="form-control mb-2" id="competitionDescription2" rows="1" placeholder="Seconda riga di descrizione"></textarea>
-                                <textarea class="form-control mb-2" id="competitionDisclaimer" rows="2" placeholder="Disclaimer"></textarea>
+                                <input type="text" class="form-control form-control-lg mb-2" id="competitionTitle" placeholder="Titolo della Competizione" value="<?php echo htmlspecialchars($timetable['titolo']); ?>">
+                                <input type="text" class="form-control mb-2" id="competitionSubtitle" placeholder="Sottotitolo" value="<?php echo htmlspecialchars($timetable['sottotitolo']); ?>">
+                                <textarea class="form-control mb-2" id="competitionDescription1" rows="1" placeholder="Prima riga di descrizione"><?php echo htmlspecialchars($timetable['desc1']); ?></textarea>
+                                <textarea class="form-control mb-2" id="competitionDescription2" rows="1" placeholder="Seconda riga di descrizione"><?php echo htmlspecialchars($timetable['desc2']); ?></textarea>
+                                <textarea class="form-control mb-2" id="competitionDisclaimer" rows="2" placeholder="Disclaimer"><?php echo htmlspecialchars($timetable['disclaimer']); ?></textarea>
                             </div>
                             <div class="col-md-3 text-center">
                                 <div class="logo-upload-box" id="logoUploadBox">
-                                    <i class="bi bi-cloud-upload"></i>
-                                    <p class="mb-0" id="uploadText">Carica il logo qui</p>
-                                    <img id="logoPreview" class="competition-logo mb-2 d-none" alt="Logo">
+                                    <?php if (!empty($timetable['logo'])): ?>
+                                        <img src="<?php echo htmlspecialchars($timetable['logo']); ?>" id="logoPreview" class="competition-logo mb-2" alt="Logo">
+                                        <p class="mb-0 d-none" id="uploadText">Carica il logo qui</p>
+                                    <?php else: ?>
+                                        <i class="bi bi-cloud-upload"></i>
+                                        <p class="mb-0" id="uploadText">Carica il logo qui</p>
+                                        <img id="logoPreview" class="competition-logo mb-2 d-none" alt="Logo">
+                                    <?php endif; ?>
                                 </div>
                                 <input type="file" class="d-none" id="logoUpload" accept="image/*">
                             </div>
