@@ -45,7 +45,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("sss", $username, $email, $hashed_password);
         
         if ($stmt->execute()) {
-            $success = true;
+            // Create user directories
+            $user_dir = __DIR__ . '/src/users/' . $username;
+            $logo_dir = $user_dir . '/logo';
+            $media_dir = $user_dir . '/media';
+
+            if (!file_exists($user_dir) && mkdir($user_dir, 0755, true)) {
+                mkdir($logo_dir, 0755);
+                mkdir($media_dir, 0755);
+                $success = true;
+            } else {
+                $errors[] = "Errore durante la creazione delle cartelle utente. Riprova più tardi.";
+            }
         } else {
             $errors[] = "Errore durante la registrazione. Riprova più tardi.";
         }
