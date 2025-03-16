@@ -87,6 +87,14 @@ if (!$timetable) {
         }
         .col-md-6 {
             display: flex;
+
+            .left {
+                padding-right:0px !important;
+            }
+
+            .right {
+                padding-left:0px !important;
+            }
         }
         .card {
             margin-bottom: 1rem;
@@ -167,6 +175,15 @@ if (!$timetable) {
         }
         .col-md-6 {
             display: flex;
+
+            .left {
+                padding-right:0px !important;
+            }
+
+            .right {
+                padding-left:0px !important;
+            }
+
         }
         .card {
             margin-bottom: 1rem;
@@ -304,7 +321,7 @@ if (!$timetable) {
        
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-6 left">
                 <div class="card mb-4">
                     <div class="card-header">
                         <h3 class="card-title mb-0">Dati competizione</h3>
@@ -335,7 +352,7 @@ if (!$timetable) {
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 right">
                 <div class="card mb-4">
                     <div class="card-header">
                         <h3 class="card-title mb-0">Inserisci Voce</h3>
@@ -443,6 +460,7 @@ if (!$timetable) {
                                 <th>A</th>
                                 <th>Balli</th>
                                 <th>Batterie</th>
+                                <th>Azioni</th>
                             </tr>
                         </thead>
                         <tbody id="scheduleBody"></tbody>
@@ -521,6 +539,9 @@ if (!$timetable) {
                         tr.innerHTML = `
                             <td>${row.time_slot}</td>
                             <td colspan="9">${row.description}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
+                            </td>
                         `;
                     } else {
                         tr.innerHTML = `
@@ -534,11 +555,43 @@ if (!$timetable) {
                             <td>${row.a || ''}</td>
                             <td>${row.balli || ''}</td>
                             <td>${row.batterie || ''}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
+                            </td>
                         `;
                     }
                     scheduleBody.appendChild(tr);
                 });
             }
+
+            // Delete row function
+            window.deleteRow = function(rowId) {
+                if (confirm('Sei sicuro di voler eliminare questa riga?')) {
+                    fetch('/api/save_timetable_detail.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            timetable_id: timetableId,
+                            entry_type: 'delete',
+                            row_id: rowId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            updateTimetableDisplay(data.rows);
+                        } else {
+                            alert('Errore durante l\'eliminazione: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Errore durante l\'eliminazione');
+                    });
+                }
+            };
 
             // Load initial data
             loadTimetableDetails();

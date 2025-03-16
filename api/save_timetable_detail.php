@@ -25,6 +25,30 @@ if ($data['entry_type'] === 'load') {
     exit;
 }
 
+// Handle delete request
+if ($data['entry_type'] === 'delete') {
+    if (!isset($data['row_id'])) {
+        echo json_encode(['success' => false, 'error' => 'Missing row ID']);
+        exit;
+    }
+    
+    $delete_stmt = $conn->prepare("DELETE FROM timetable_details WHERE id = ? AND timetable_id = ?");
+    $delete_stmt->bind_param("ii", $data['row_id'], $data['timetable_id']);
+    
+    if ($delete_stmt->execute()) {
+        $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY time_slot");
+        $select_stmt->bind_param("i", $data['timetable_id']);
+        $select_stmt->execute();
+        $result = $select_stmt->get_result();
+        $rows = $result->fetch_all(MYSQLI_ASSOC);
+        
+        echo json_encode(['success' => true, 'rows' => $rows]);
+    } else {
+        echo json_encode(['success' => false, 'error' => $delete_stmt->error]);
+    }
+    exit;
+}
+
 if (!isset($data['timetable_id']) || !isset($data['entry_type'])) {
     echo json_encode(['success' => false, 'error' => 'Missing required fields']);
     exit;
