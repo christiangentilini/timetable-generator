@@ -544,6 +544,98 @@ if (!$timetable) {
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Modifica Riga</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editRowId">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label for="editTime" class="form-label small mb-1">Orario</label>
+                                <input type="time" class="form-control form-control-sm" id="editTime" required>
+                            </div>
+                            <div class="col-md-10">
+                                <label class="form-label small mb-1">Tipo di riga</label>
+                                <div class="btn-group" role="group" aria-label="Tipo di riga">
+                                    <input type="radio" class="btn-check" name="editRowType" id="editNormalRowType" value="normal">
+                                    <label class="btn btn-outline-primary btn-sm" for="editNormalRowType">Normale</label>
+                                    <input type="radio" class="btn-check" name="editRowType" id="editDescriptiveRowType" value="descriptive">
+                                    <label class="btn btn-outline-primary btn-sm" for="editDescriptiveRowType">Descrittiva</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Edit Descriptive Row Section -->
+                        <div class="descriptive-fields hidden" id="editDescriptiveFields">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="editDescription" class="form-label small mb-1">Descrizione</label>
+                                    <input type="text" class="form-control form-control-sm" id="editDescription">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Edit Normal Row Section -->
+                        <div class="normal-fields" id="editNormalFields">
+                            <div class="row g-3">
+                                <div class="col-md-2">
+                                    <label for="editDiscipline" class="form-label small mb-1">Disciplina</label>
+                                    <input type="text" class="form-control form-control-sm" id="editDiscipline">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editCategory" class="form-label small mb-1">Categoria</label>
+                                    <input type="text" class="form-control form-control-sm" id="editCategory">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editClass" class="form-label small mb-1">Classe</label>
+                                    <input type="text" class="form-control form-control-sm" id="editClass">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editType" class="form-label small mb-1">Tipo</label>
+                                    <select class="form-select form-select-sm" id="editType">
+                                        <option value="Solo">Solo</option>
+                                        <option value="Coppia">Coppia</option>
+                                        <option value="Duo">Duo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editRound" class="form-label small mb-1">Turno</label>
+                                    <input type="text" class="form-control form-control-sm" id="editRound">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editStartNumber" class="form-label small mb-1">Da</label>
+                                    <input type="number" class="form-control form-control-sm" id="editStartNumber" min="1">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editEndNumber" class="form-label small mb-1">A</label>
+                                    <input type="number" class="form-control form-control-sm" id="editEndNumber" min="1">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editDances" class="form-label small mb-1">Balli</label>
+                                    <input type="number" class="form-control form-control-sm" id="editDances" min="1">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="editHeats" class="form-label small mb-1">Batterie</label>
+                                    <input type="number" class="form-control form-control-sm" id="editHeats" min="1">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditedRow()">Salva</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -627,6 +719,7 @@ if (!$timetable) {
                         const actionButton = document.createElement('div');
                         actionButton.innerHTML = `
                             <div class="btn-group">
+                                <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
                                 <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
                             </div>
@@ -653,6 +746,7 @@ if (!$timetable) {
                         const actionButton = document.createElement('div');
                         actionButton.innerHTML = `
                             <div class="btn-group">
+                                <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
                                 <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
                             </div>
@@ -717,6 +811,127 @@ if (!$timetable) {
                     });
                 }
             };
+
+            // Edit row function
+            window.editRow = function(rowId) {
+                fetch(`/api/save_timetable_detail.php?id=${timetableId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        timetable_id: timetableId,
+                        entry_type: 'load'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const row = data.rows.find(r => r.id === rowId);
+                        if (row) {
+                            document.getElementById('editRowId').value = row.id;
+                            document.getElementById('editTime').value = row.time_slot;
+                            
+                            if (row.entry_type === 'descriptive') {
+                                document.getElementById('editDescriptiveRowType').checked = true;
+                                document.getElementById('editDescription').value = row.description;
+                                document.getElementById('editDescriptiveFields').classList.remove('hidden');
+                                document.getElementById('editNormalFields').classList.add('hidden');
+                            } else {
+                                document.getElementById('editNormalRowType').checked = true;
+                                document.getElementById('editDiscipline').value = row.discipline || '';
+                                document.getElementById('editCategory').value = row.category || '';
+                                document.getElementById('editClass').value = row.class_name || '';
+                                document.getElementById('editType').value = row.type || 'Solo';
+                                document.getElementById('editRound').value = row.turn || '';
+                                document.getElementById('editStartNumber').value = row.da || '';
+                                document.getElementById('editEndNumber').value = row.a || '';
+                                document.getElementById('editDances').value = row.balli || '';
+                                document.getElementById('editHeats').value = row.batterie || '';
+                                document.getElementById('editNormalFields').classList.remove('hidden');
+                                document.getElementById('editDescriptiveFields').classList.add('hidden');
+                            }
+                            
+                            new bootstrap.Modal(document.getElementById('editModal')).show();
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            };
+
+            // Save edited row
+            window.saveEditedRow = function() {
+                const rowId = document.getElementById('editRowId').value;
+                const rowType = document.querySelector('input[name="editRowType"]:checked').value;
+                const timeSlot = document.getElementById('editTime').value;
+                
+                if (!timeSlot) {
+                    alert('Orario è richiesto');
+                    return;
+                }
+                
+                let formData = {
+                    timetable_id: timetableId,
+                    row_id: parseInt(rowId),
+                    entry_type: rowType,
+                    time_slot: timeSlot
+                };
+                
+                if (rowType === 'descriptive') {
+                    const description = document.getElementById('editDescription').value;
+                    if (!description) {
+                        alert('Descrizione è richiesta per le righe descrittive');
+                        return;
+                    }
+                    formData.description = description;
+                } else {
+                    formData.discipline = document.getElementById('editDiscipline').value;
+                    formData.category = document.getElementById('editCategory').value;
+                    formData.class_name = document.getElementById('editClass').value;
+                    formData.type = document.getElementById('editType').value;
+                    formData.turn = document.getElementById('editRound').value;
+                    formData.da = document.getElementById('editStartNumber').value;
+                    formData.a = document.getElementById('editEndNumber').value;
+                    formData.balli = document.getElementById('editDances').value;
+                    formData.batterie = document.getElementById('editHeats').value;
+                }
+                
+                fetch('/api/edit_timetable_detail.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                        updateTimetableDisplay(data.rows);
+                    } else {
+                        alert('Errore durante il salvataggio: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Errore durante il salvataggio');
+                });
+            };
+
+            // Toggle between normal and descriptive fields in edit modal
+            document.getElementById('editNormalRowType').addEventListener('change', function() {
+                if (this.checked) {
+                    document.getElementById('editNormalFields').classList.remove('hidden');
+                    document.getElementById('editDescriptiveFields').classList.add('hidden');
+                }
+            });
+
+            document.getElementById('editDescriptiveRowType').addEventListener('change', function() {
+                if (this.checked) {
+                    document.getElementById('editDescriptiveFields').classList.remove('hidden');
+                    document.getElementById('editNormalFields').classList.add('hidden');
+                }
+            });
 
             // Load initial data
             loadTimetableDetails();
