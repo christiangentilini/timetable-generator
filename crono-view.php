@@ -73,6 +73,11 @@ if (!$timetable) {
         .btn {
             padding: 0.25rem 0.75rem;
             font-size: 0.875rem;
+            border-radius: 0.375rem;
+            margin-right: 0.5rem;
+        }
+        .btn:last-child {
+            margin-right: 0;
         }
         .table {
             font-size: 0.875rem;
@@ -80,6 +85,24 @@ if (!$timetable) {
         }
         .table td, .table th {
             padding: 0.5rem;
+            text-align: center;
+        }
+        .table tr {
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .table td:first-child,
+        .table td:nth-child(7),
+        .table td:nth-child(8),
+        .table td:nth-child(9),
+        .table td:nth-child(10) {
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
         }
         .draggable-row {
             cursor: move;
@@ -100,6 +123,10 @@ if (!$timetable) {
             margin-top: 42px;
             height: auto;
         }
+
+        #actionContainer {
+            padding: 0 50px;
+        }
         
         #dragHandleContainer > div, #actionContainer > div {
             height: 38px;
@@ -115,6 +142,7 @@ if (!$timetable) {
             height: 24px;
             width: 24px;
             padding: 0;
+            margin-bottom: 4px;
         }
         
         .descriptive-row + #dragHandleContainer > div, .descriptive-row + #actionContainer > div {
@@ -209,6 +237,13 @@ if (!$timetable) {
         .table td, .table th {
             padding: 0.5rem;
         }
+        .table td:first-child,
+        .table td:nth-child(7),
+        .table td:nth-child(8),
+        .table td:nth-child(9),
+        .table td:nth-child(10) {
+            text-align: center;
+        }
         .draggable-row {
             cursor: move;
         }
@@ -290,7 +325,8 @@ if (!$timetable) {
         }
         .descriptive-row {
             background-color: #f8f9fa;
-            font-style: italic;
+            font-weight: bold;
+            text-align: center;
             padding: 0.25rem 0.5rem;
         }
         .normal-fields, .descriptive-fields {
@@ -519,16 +555,16 @@ if (!$timetable) {
                             <table class="table table-striped table-bordered">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Orario</th>
-                                        <th>Disciplina</th>
-                                        <th>Categoria</th>
-                                        <th>Classe</th>
-                                        <th>Tipo</th>
-                                        <th>Turno</th>
-                                        <th>Da</th>
-                                        <th>A</th>
-                                        <th>Balli</th>
-                                        <th>Batterie</th>
+                                        <th style="width: 30px; text-align: center;">Orario</th>
+                                        <th style="width: 100px; text-align: center;">Disciplina</th>
+                                        <th style="width: 40px; text-align: center;">Categoria</th>
+                                        <th style="width: 35px; text-align: center;">Classe</th>
+                                        <th style="width: 100px; text-align: center;">Tipo</th>
+                                        <th style="width: 100px; text-align: center;">Turno</th>
+                                        <th style="width: 35px; text-align: center;">Da</th>
+                                        <th style="width: 35px; text-align: center;">A</th>
+                                        <th style="width: 35px; text-align: center;">Balli</th>
+                                        <th style="width: 15px; text-align: center;">Batterie</th>
                                     </tr>
                                 </thead>
                                 <tbody id="scheduleBody"></tbody>
@@ -718,7 +754,7 @@ if (!$timetable) {
                         
                         const actionButton = document.createElement('div');
                         actionButton.innerHTML = `
-                            <div class="btn-group">
+                            <div class="d-flex">
                                 <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
                                 <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
@@ -745,7 +781,7 @@ if (!$timetable) {
                         
                         const actionButton = document.createElement('div');
                         actionButton.innerHTML = `
-                            <div class="btn-group">
+                            <div class="d-flex">
                                 <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
                                 <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
