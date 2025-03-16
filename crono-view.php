@@ -81,6 +81,46 @@ if (!$timetable) {
         .table td, .table th {
             padding: 0.5rem;
         }
+        .draggable-row {
+            cursor: move;
+        }
+        .drag-handle {
+            cursor: move;
+            padding: 4px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 14px;
+        }
+        #dragHandleContainer, #actionContainer {
+            display: flex;
+            flex-direction: column;
+            margin-top: 42px;
+            height: auto;
+        }
+        
+        #dragHandleContainer > div, #actionContainer > div {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #dragHandleContainer .drag-handle, #actionContainer .btn-sm {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 24px;
+            width: 24px;
+            padding: 0;
+        }
+        
+        .descriptive-row + #dragHandleContainer > div, .descriptive-row + #actionContainer > div {
+            background-color: #f8f9fa;
+            height: 38px;
+        }
         .row {
             margin-bottom: 0.5rem;
             display: flex;
@@ -168,6 +208,32 @@ if (!$timetable) {
         }
         .table td, .table th {
             padding: 0.5rem;
+        }
+        .draggable-row {
+            cursor: move;
+        }
+        .drag-handle {
+            cursor: move;
+            padding: 8px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        #dragHandleContainer, #actionContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        #dragHandleContainer > div, #actionContainer > div {
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .descriptive-row + #dragHandleContainer > div, .descriptive-row + #actionContainer > div {
+            background-color: #f8f9fa;
         }
         .row {
             margin-bottom: 0.5rem;
@@ -446,25 +512,30 @@ if (!$timetable) {
                 <h3 class="card-title mb-0">Timetable</h3>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Orario</th>
-                                <th>Disciplina</th>
-                                <th>Categoria</th>
-                                <th>Classe</th>
-                                <th>Tipo</th>
-                                <th>Turno</th>
-                                <th>Da</th>
-                                <th>A</th>
-                                <th>Balli</th>
-                                <th>Batterie</th>
-                                <th>Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scheduleBody"></tbody>
-                    </table>
+                <div class="d-flex">
+                    <div class="me-2" id="dragHandleContainer" style="width: 30px;"></div>
+                    <div class="flex-grow-1">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Orario</th>
+                                        <th>Disciplina</th>
+                                        <th>Categoria</th>
+                                        <th>Classe</th>
+                                        <th>Tipo</th>
+                                        <th>Turno</th>
+                                        <th>Da</th>
+                                        <th>A</th>
+                                        <th>Balli</th>
+                                        <th>Batterie</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scheduleBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="ms-2" id="actionContainer" style="width: 40px;"></div>
                 </div>
                 <div class="mt-3">
                     <button onclick="window.print()" class="btn btn-secondary">Stampa Timetable</button>
@@ -530,19 +601,37 @@ if (!$timetable) {
             // Update timetable display
             function updateTimetableDisplay(rows) {
                 const scheduleBody = document.getElementById('scheduleBody');
+                const dragHandleContainer = document.getElementById('dragHandleContainer');
+                const actionContainer = document.getElementById('actionContainer');
+                
                 scheduleBody.innerHTML = '';
+                dragHandleContainer.innerHTML = '';
+                actionContainer.innerHTML = '';
                 
                 rows.forEach(row => {
                     const tr = document.createElement('tr');
+                    tr.draggable = true;
+                    tr.dataset.rowId = row.id;
+                    tr.classList.add('draggable-row');
                     if (row.entry_type === 'descriptive') {
                         tr.classList.add('descriptive-row');
                         tr.innerHTML = `
                             <td>${row.time_slot}</td>
                             <td colspan="9">${row.description}</td>
-                            <td>
-                                <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
-                            </td>
                         `;
+                        
+                        const dragHandle = document.createElement('div');
+                        dragHandle.innerHTML = `<i class="bi bi-grip-vertical drag-handle"></i>`;
+                        document.getElementById('dragHandleContainer').appendChild(dragHandle);
+                        
+                        const actionButton = document.createElement('div');
+                        actionButton.innerHTML = `
+                            <div class="btn-group">
+                                <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
+                            </div>
+                        `;
+                        document.getElementById('actionContainer').appendChild(actionButton);
                     } else {
                         tr.innerHTML = `
                             <td>${row.time_slot}</td>
@@ -555,14 +644,50 @@ if (!$timetable) {
                             <td>${row.a || ''}</td>
                             <td>${row.balli || ''}</td>
                             <td>${row.batterie || ''}</td>
-                            <td>
-                                <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
-                            </td>
                         `;
+                        
+                        const dragHandle = document.createElement('div');
+                        dragHandle.innerHTML = `<i class="bi bi-grip-vertical drag-handle"></i>`;
+                        document.getElementById('dragHandleContainer').appendChild(dragHandle);
+                        
+                        const actionButton = document.createElement('div');
+                        actionButton.innerHTML = `
+                            <div class="btn-group">
+                                <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
+                            </div>
+                        `;
+                        document.getElementById('actionContainer').appendChild(actionButton);
                     }
                     scheduleBody.appendChild(tr);
                 });
             }
+
+            // Duplicate row function
+            window.duplicateRow = function(rowId) {
+                fetch('/api/duplicate_timetable_detail.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        timetable_id: timetableId,
+                        row_id: rowId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateTimetableDisplay(data.rows);
+                    } else {
+                        alert('Errore durante la duplicazione: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Errore durante la duplicazione');
+                });
+            };
 
             // Delete row function
             window.deleteRow = function(rowId) {
@@ -595,6 +720,63 @@ if (!$timetable) {
 
             // Load initial data
             loadTimetableDetails();
+
+            // Drag and drop functionality
+            const scheduleBody = document.getElementById('scheduleBody');
+            let draggedRow = null;
+
+            scheduleBody.addEventListener('dragstart', (e) => {
+                draggedRow = e.target.closest('tr');
+                e.target.style.opacity = '0.5';
+            });
+
+            scheduleBody.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '';
+            });
+
+            scheduleBody.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const row = e.target.closest('tr');
+                if (row && row !== draggedRow) {
+                    const rect = row.getBoundingClientRect();
+                    const midpoint = rect.top + rect.height / 2;
+                    if (e.clientY < midpoint) {
+                        row.parentNode.insertBefore(draggedRow, row);
+                    } else {
+                        row.parentNode.insertBefore(draggedRow, row.nextSibling);
+                    }
+                }
+            });
+
+            scheduleBody.addEventListener('dragend', (e) => {
+                const rows = Array.from(scheduleBody.querySelectorAll('tr'));
+                const orderData = rows.map((row, index) => ({
+                    id: parseInt(row.dataset.rowId),
+                    order: index + 1
+                }));
+
+                fetch('/api/update_timetable_order.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        timetable_id: timetableId,
+                        order_data: orderData
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Reorder failed:', data.error);
+                        loadTimetableDetails(); // Reload original order if failed
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadTimetableDetails(); // Reload original order if failed
+                });
+            });
 
             // Handle row submission
             document.getElementById('addRowBtn').addEventListener('click', function() {

@@ -15,7 +15,7 @@ if (!$data) {
 
 // Handle load request
 if ($data['entry_type'] === 'load') {
-    $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY time_slot");
+    $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY order_number, time_slot");
     $select_stmt->bind_param("i", $data['timetable_id']);
     $select_stmt->execute();
     $result = $select_stmt->get_result();
@@ -36,7 +36,7 @@ if ($data['entry_type'] === 'delete') {
     $delete_stmt->bind_param("ii", $data['row_id'], $data['timetable_id']);
     
     if ($delete_stmt->execute()) {
-        $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY time_slot");
+        $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY order_number, time_slot");
         $select_stmt->bind_param("i", $data['timetable_id']);
         $select_stmt->execute();
         $result = $select_stmt->get_result();
@@ -66,14 +66,22 @@ if ($result->num_rows === 0) {
 }
 
 // Prepare SQL based on entry type
+// Get the maximum order_number for this timetable
+$max_order_stmt = $conn->prepare("SELECT COALESCE(MAX(order_number), -1) as max_order FROM timetable_details WHERE timetable_id = ?");
+$max_order_stmt->bind_param("i", $data['timetable_id']);
+$max_order_stmt->execute();
+$max_order_result = $max_order_stmt->get_result();
+$next_order = $max_order_result->fetch_assoc()['max_order'] + 1;
+$max_order_stmt->close();
+
 if ($data['entry_type'] === 'descriptive') {
-    $sql = "INSERT INTO timetable_details (timetable_id, entry_type, time_slot, description) VALUES (?, ?, ?, ?)"; 
+    $sql = "INSERT INTO timetable_details (timetable_id, entry_type, time_slot, description, order_number) VALUES (?, ?, ?, ?, ?)"; 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isss", $data['timetable_id'], $data['entry_type'], $data['time_slot'], $data['description']);
+    $stmt->bind_param("isssi", $data['timetable_id'], $data['entry_type'], $data['time_slot'], $data['description'], $next_order);
 } else {
-    $sql = "INSERT INTO timetable_details (timetable_id, entry_type, time_slot, discipline, category, class_name, type, turn, da, a, balli, batterie) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; 
+    $sql = "INSERT INTO timetable_details (timetable_id, entry_type, time_slot, discipline, category, class_name, type, turn, da, a, balli, batterie, order_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isssssssssss", 
+    $stmt->bind_param("isssssssssssi", 
         $data['timetable_id'], 
         $data['entry_type'], 
         $data['time_slot'],
@@ -85,13 +93,14 @@ if ($data['entry_type'] === 'descriptive') {
         $data['da'],
         $data['a'],
         $data['balli'],
-        $data['batterie']
+        $data['batterie'],
+        $next_order
     );
 }
 
 if ($stmt->execute()) {
     // Get all timetable details ordered by time_slot
-    $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY time_slot");
+    $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY order_number, time_slot");
     $select_stmt->bind_param("i", $data['timetable_id']);
     $select_stmt->execute();
     $result = $select_stmt->get_result();

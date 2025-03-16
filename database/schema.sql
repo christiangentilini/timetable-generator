@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS timetable_details (
     balli VARCHAR(255),
     batterie VARCHAR(50),
     description TEXT,
+    order_number INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (timetable_id) REFERENCES timetables(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
