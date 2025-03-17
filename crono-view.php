@@ -591,7 +591,7 @@ if (!$timetable) {
                     <div class="ms-2" id="actionContainer" style="width: 40px;"></div>
                 </div>
                 <div class="mt-3">
-                    <button onclick="window.print()" class="btn btn-secondary">Stampa Timetable</button>
+                    <a href="generate_pdf.php?id=<?php echo $timetable_id; ?>" class="btn btn-secondary" target="_blank">Stampa Timetable</a>
                 </div>
             </div>
         </div>
