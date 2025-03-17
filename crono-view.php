@@ -542,6 +542,10 @@ if (!$timetable) {
                                         <label for="heats" class="form-label small mb-1">Batterie</label>
                                         <input type="number" class="form-control form-control-sm" id="heats" min="1">
                                     </div>
+                                    <div class="col-md-2">
+                                        <label for="pannello" class="form-label small mb-1">Pannello</label>
+                                        <input type="text" class="form-control form-control-sm" id="pannello" maxlength="5">
+                                    </div>
                                 </div>
                             </div>
                             
@@ -577,6 +581,7 @@ if (!$timetable) {
                                         <th style="width: 35px; text-align: center;">A</th>
                                         <th style="width: 35px; text-align: center;">Balli</th>
                                         <th style="width: 15px; text-align: center;">Batterie</th>
+                                        <th style="width: 35px; text-align: center;">Pannello</th>
                                     </tr>
                                 </thead>
                                 <tbody id="scheduleBody"></tbody>
@@ -672,6 +677,10 @@ if (!$timetable) {
                                     <label for="editHeats" class="form-label small mb-1">Batterie</label>
                                     <input type="number" class="form-control form-control-sm" id="editHeats" min="1">
                                 </div>
+                                <div class="col-md-2">
+                                    <label for="editPannello" class="form-label small mb-1">Pannello</label>
+                                    <input type="text" class="form-control form-control-sm" id="editPannello" maxlength="5">
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -757,7 +766,7 @@ if (!$timetable) {
                         tr.classList.add('descriptive-row');
                         tr.innerHTML = `
                             <td>${row.time_slot}</td>
-                            <td colspan="9">${row.description}</td>
+                            <td colspan="10">${row.description}</td>
                         `;
                         
                         const dragHandle = document.createElement('div');
@@ -785,6 +794,7 @@ if (!$timetable) {
                             <td>${row.a || ''}</td>
                             <td>${row.balli || ''}</td>
                             <td>${row.batterie || ''}</td>
+                            <td>${row.pannello || ''}</td>
                         `;
                         
                         const dragHandle = document.createElement('div');
@@ -896,6 +906,7 @@ if (!$timetable) {
                                 document.getElementById('editEndNumber').value = row.a || '';
                                 document.getElementById('editDances').value = row.balli || '';
                                 document.getElementById('editHeats').value = row.batterie || '';
+                                document.getElementById('editPannello').value = row.pannello || '';
                                 document.getElementById('editNormalFields').classList.remove('hidden');
                                 document.getElementById('editDescriptiveFields').classList.add('hidden');
                             }
@@ -942,6 +953,7 @@ if (!$timetable) {
                     formData.a = document.getElementById('editEndNumber').value;
                     formData.balli = document.getElementById('editDances').value;
                     formData.batterie = document.getElementById('editHeats').value;
+                    formData.pannello = document.getElementById('editPannello').value;
                 }
                 
                 fetch('/api/edit_timetable_detail.php', {
@@ -1089,7 +1101,8 @@ if (!$timetable) {
                         da,
                         a,
                         balli,
-                        batterie
+                        batterie,
+                        pannello: document.getElementById('pannello').value
                     });
                 }
                 

@@ -36,8 +36,11 @@ try {
             $timetable_id
         );
     } else {
-        $stmt = $conn->prepare("UPDATE timetable_details SET time_slot = ?, discipline = ?, category = ?, class_name = ?, type = ?, turn = ?, da = ?, a = ?, balli = ?, batterie = ?, entry_type = ? WHERE id = ? AND timetable_id = ?");
-        $stmt->bind_param("sssssssssssii", 
+        // Ensure empty values are stored as empty strings instead of NULL
+        $pannello = isset($data['pannello']) ? $data['pannello'] : '';
+        
+        $stmt = $conn->prepare("UPDATE timetable_details SET time_slot = ?, discipline = ?, category = ?, class_name = ?, type = ?, turn = ?, da = ?, a = ?, balli = ?, batterie = ?, pannello = ?, entry_type = ? WHERE id = ? AND timetable_id = ?");
+        $stmt->bind_param("ssssssssssssii", 
             $data['time_slot'],
             $data['discipline'],
             $data['category'],
@@ -48,6 +51,7 @@ try {
             $data['a'],
             $data['balli'],
             $data['batterie'],
+            $pannello,
             $data['entry_type'],
             $row_id,
             $timetable_id
