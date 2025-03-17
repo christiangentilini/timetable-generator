@@ -56,6 +56,10 @@ if (!$timetable) {
         .card {
             margin-bottom: 1rem;
             padding: 0;
+            margin-right: 1rem;
+        }
+        .card:last-child {
+            margin-right: 0;
         }
         .card-header {
             padding: 0.5rem 1rem;
@@ -150,26 +154,18 @@ if (!$timetable) {
             height: 38px;
         }
         .row {
-            margin-bottom: 0.5rem;
+            margin-bottom: 2rem;
             display: flex;
         }
         .col-md-6 {
             display: flex;
-
-            .left {
-                padding-right:0px !important;
-            }
-
-            .right {
-                padding-left:0px !important;
-            }
+            padding: 0;
         }
         .card {
             margin-bottom: 1rem;
             flex: 1;
             display: flex;
             flex-direction: column;
-
         }
         .card-body {
             flex: 1;
@@ -182,6 +178,14 @@ if (!$timetable) {
         }
         .mb-4 {
             margin-bottom: 1rem !important;
+
+            left {
+    margin-right: 5px;
+            }
+
+            right {
+    margin-left: 5px;
+            }
         }
         .competition-logo {
             max-height: 100px;
@@ -284,7 +288,6 @@ if (!$timetable) {
             .right {
                 padding-left:0px !important;
             }
-
         }
         .card {
             margin-bottom: 1rem;
@@ -304,6 +307,15 @@ if (!$timetable) {
         }
         .mb-4 {
             margin-bottom: 1rem !important;
+
+
+            left {
+    margin-right: 5px;
+            }
+
+            right {
+    margin-left: 5px;
+            }
         }
         .competition-logo {
             max-height: 100px;
@@ -424,7 +436,7 @@ if (!$timetable) {
 
         <div class="row">
             <div class="col-md-6 left">
-                <div class="card mb-4">
+                <div class="card mb-4 left" style="margin-right: 10px;">
                     <div class="card-header">
                         <h3 class="card-title mb-0">Dati competizione</h3>
                     </div>
@@ -455,7 +467,7 @@ if (!$timetable) {
                 </div>
             </div>
             <div class="col-md-6 right">
-                <div class="card mb-4">
+                <div class="card mb-4 right" style="margin-left: 10px;">
                     <div class="card-header">
                         <h3 class="card-title mb-0">Inserisci Voce</h3>
                     </div>
