@@ -41,12 +41,38 @@ if ($timetable_id > 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genera PDF - <?php echo htmlspecialchars($timetable['titolo']); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            padding: 20px;
+            padding-top: 80px;
+            padding-bottom: 10px;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        .version-text {
+            font-size: 0.875rem;
+            color: #ffffff !important;
+            margin-left: 0.5rem;
+        }
+        .profile-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            overflow: hidden;
+        }
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .pdf-container {
             max-width: 210mm;
@@ -128,13 +154,52 @@ if ($timetable_id > 0) {
     </style>
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top no-print">
+        <div class="container">
+            <a class="navbar-brand" href="index.php">Timetable Generator <span class="version-text">v1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link profile-image" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <?php if (isset($_SESSION['profile_path']) && $_SESSION['profile_path']): ?>
+                                <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>?v=<?php echo time(); ?>" alt="Profile" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                            <?php else: ?>
+                                <i class="bi bi-person-circle"></i>
+                            <?php endif; ?>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="logout.php">Logout</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-list"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="cronologici.php">Cronologici</a></li>
+                            <li><a class="dropdown-item" href="crono-view.php">Nuovo Cronologico</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="definizioni.php">Definizioni</a></li>
+                            <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
     <div class="container no-print mb-3">
         <div class="row">
             <div class="col-12">
                 <h1>Anteprima PDF</h1>
                 <p>Questa è un'anteprima del PDF che verrà generato. Clicca su "Genera PDF" per scaricare il file.</p>
                 <button id="generatePdfBtn" class="btn btn-primary">Genera PDF</button>
-                <a href="crono-view.php?id=<?php echo $timetable_id; ?>" class="btn btn-secondary">Torna al Cronologico</a>
+                <a onclick="window.close();" class="btn btn-secondary">Torna al Cronologico</a>
             </div>
         </div>
     </div>
@@ -203,6 +268,7 @@ if ($timetable_id > 0) {
         </table>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.getElementById('generatePdfBtn').addEventListener('click', function() {
             // Initialize jsPDF
