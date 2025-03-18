@@ -7,12 +7,19 @@ $success = false;
 $errors = [];
 
 // Fetch current user data
-$stmt = $conn->prepare("SELECT username, email, profile_path FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT username, email, nome, cognome, profile_path FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $stmt->close();
+
+// Se non ci sono dati nel database, usa quelli della sessione
+$email = $user['email'] ?? $_SESSION['email'] ?? '';
+$nome = $user['nome'] ?? $_SESSION['nome'] ?? '';
+$cognome = $user['cognome'] ?? $_SESSION['cognome'] ?? '';
+$profile_path = $user['profile_path'] ?? $_SESSION['profile_path'] ?? '';
+$username = $user['username'] ?? $_SESSION['username'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -217,6 +224,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <?php endif; ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <li><span class="dropdown-item-text">Ciao, <?php echo htmlspecialchars($_SESSION['nome'] ?? '') . ' ' . htmlspecialchars($_SESSION['cognome'] ?? ''); ?>!</span></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="logout.php">Logout</a></li>
@@ -240,59 +249,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </nav>
 
     <div class="container">
-        <h2 class="mb-4">Profilo Utente</h2>
-
-        <?php if ($success): ?>
-            <div class="alert alert-success" role="alert">
-                Profilo aggiornato con successo!
-            </div>
-        <?php endif; ?>
-
-        <?php if (!empty($errors)): ?>
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
-
-        <div class="card">
-            <div class="card-body">
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="text-center mb-4">
-                        <div class="profile-preview">
-                            <?php if ($user['profile_path']): ?>
-                                <img src="<?php echo htmlspecialchars($user['profile_path']); ?>?v=<?php echo time(); ?>" alt="Profile Preview" id="profilePreview">
-                            <?php else: ?>
-                                <i class="bi bi-person" style="font-size: 4rem;"></i>
-                            <?php endif; ?>
-                        </div>
-                        <div class="mb-3">
-                            <label for="profile_image" class="form-label">Immagine Profilo</label>
-                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/jpeg,image/png,image/gif">
-                        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">Profilo Utente</h3>
                     </div>
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Nome Utente</label>
-                        <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
+                    <div class="card-body">
+                        <form id="profileForm" method="POST" action="update_profile.php" enctype="multipart/form-data">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="nome" class="form-label">Nome</label>
+                                    <input type="text" class="form-control" id="nome" name="nome" maxlength="30" value="<?php echo htmlspecialchars($nome); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cognome" class="form-label">Cognome</label>
+                                    <input type="text" class="form-control" id="cognome" name="cognome" maxlength="30" value="<?php echo htmlspecialchars($cognome); ?>">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" readonly>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label">Nuova Password</label>
+                                    <input type="password" class="form-control" id="password" name="password">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="confirm_password" class="form-label">Conferma Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <label for="profile_image" class="form-label">Immagine Profilo</label>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <?php if (isset($_SESSION['profile_path']) && $_SESSION['profile_path']): ?>
+                                                <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>?v=<?php echo time(); ?>" alt="Profile" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                            <?php else: ?>
+                                                <i class="bi bi-person-circle" style="font-size: 100px;"></i>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Nuova Password</label>
-                        <input type="password" class="form-control" id="password" name="password">
-                        <div class="form-text">Lascia vuoto per mantenere la password attuale</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password_confirm" class="form-label">Conferma Password</label>
-                        <input type="password" class="form-control" id="password_confirm" name="password_confirm">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Salva Modifiche</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>

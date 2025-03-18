@@ -99,6 +99,8 @@ $stmt->close();
                             <?php endif; ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <li><span class="dropdown-item-text">Ciao, <?php echo htmlspecialchars($_SESSION['nome'] ?? '') . ' ' . htmlspecialchars($_SESSION['cognome'] ?? ''); ?>!</span></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="logout.php">Logout</a></li>

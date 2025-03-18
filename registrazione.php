@@ -42,8 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $username, $email, $hashed_password);
+        $nome = trim($_POST['nome'] ?? '');
+        $cognome = trim($_POST['cognome'] ?? '');
+        
+        $stmt = $conn->prepare("INSERT INTO users (username, email, password, nome, cognome) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $username, $email, $hashed_password, $nome, $cognome);
         
         if ($stmt->execute()) {
             // Create user directories
@@ -149,6 +152,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php endif; ?>
 
                         <form method="POST" action="">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="nome" class="form-label">Nome</label>
+                                    <input type="text" class="form-control" id="nome" name="nome" maxlength="30">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cognome" class="form-label">Cognome</label>
+                                    <input type="text" class="form-control" id="cognome" name="cognome" maxlength="30">
+                                </div>
+                            </div>
                             <div class="mb-3">
                                 <label for="username" class="form-label">Nome Utente</label>
                                 <input type="text" class="form-control" id="username" name="username" required>

@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $errors[] = "Inserisci sia il nome utente che la password";
     } else {
-        $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE username = ?");
+        $stmt = $conn->prepare("SELECT id, username, password, email, nome, cognome, profile_path FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -21,6 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
+                $_SESSION['email'] = $user['email'];
+                $_SESSION['nome'] = $user['nome'];
+                $_SESSION['cognome'] = $user['cognome'];
+                if ($user['profile_path']) {
+                    $_SESSION['profile_path'] = $user['profile_path'];
+                }
                 header("Location: index.php");
                 exit();
             } else {
