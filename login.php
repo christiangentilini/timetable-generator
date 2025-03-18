@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $errors[] = "Inserisci sia il nome utente che la password";
     } else {
-        $stmt = $conn->prepare("SELECT id, username, password, email, nome, cognome, profile_path FROM users WHERE username = ?");
+        $stmt = $conn->prepare("SELECT id, username, password, email, nome, cognome, profile_path, type, temp_password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -24,9 +24,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['email'] = $user['email'];
                 $_SESSION['nome'] = $user['nome'];
                 $_SESSION['cognome'] = $user['cognome'];
-                if ($user['profile_path']) {
-                    $_SESSION['profile_path'] = $user['profile_path'];
+                $_SESSION['type'] = $user['type'];
+                $_SESSION['profile_path'] = $user['profile_path'];
+
+                // Se l'utente ha una password temporanea, reindirizza alla pagina di cambio password
+                if ($user['temp_password']) {
+                    $_SESSION['force_password_change'] = true;
+                    header("Location: change_password.php");
+                    exit;
                 }
+
+                // Aggiorna il timestamp dell'ultimo accesso
+                $stmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+                $stmt->bind_param("i", $user['id']);
+                $stmt->execute();
+
                 header("Location: index.php");
                 exit();
             } else {

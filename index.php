@@ -1,6 +1,13 @@
 <?php
 require_once 'config/database.php';
 require_once 'config/session_check.php';
+
+// Recupera il tipo di utente
+$stmt = $conn->prepare("SELECT type FROM users WHERE id = ?");
+$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -107,6 +114,9 @@ require_once 'config/session_check.php';
                             <li><span class="dropdown-item-text">Ciao, <?php echo htmlspecialchars($_SESSION['nome'] ?? '') . ' ' . htmlspecialchars($_SESSION['cognome'] ?? ''); ?>!</span></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
+                            <?php if ($user['type'] === 'admin'): ?>
+                            <li><a class="dropdown-item" href="gestione-utenti.php">Gestione Utenti</a></li>
+                            <?php endif; ?>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="logout.php">Logout</a></li>
                         </ul>
@@ -121,6 +131,10 @@ require_once 'config/session_check.php';
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="definizioni.php">Definizioni</a></li>
                             <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
+                            <?php if ($user['type'] === 'admin'): ?>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="gestione-utenti.php">Gestione Utenti</a></li>
+                            <?php endif; ?>
                         </ul>
                     </li>
                 </ul>
@@ -168,6 +182,16 @@ require_once 'config/session_check.php';
                     </div>
                 </a>
             </div>
+            <?php if ($user['type'] === 'admin'): ?>
+            <div class="col-md-4">
+                <a href="gestione-utenti.php" class="text-decoration-none text-dark">
+                    <div class="card profile-box">
+                        <i class="bi bi-people"></i>
+                        <h5 class="mb-0">Gestione Utenti</h5>
+                    </div>
+                </a>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
