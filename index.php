@@ -192,14 +192,6 @@ $user = $result->fetch_assoc();
                 </a>
             </div>
             <?php endif; ?>
-            <div class="col-md-4">
-                <a href="changelog.php" class="text-decoration-none text-dark">
-                    <div class="card profile-box">
-                        <i class="bi bi-journal-text"></i>
-                        <h5 class="mb-0">Note di Rilascio</h5>
-                    </div>
-                </a>
-            </div>
         </div>
     </div>
 
