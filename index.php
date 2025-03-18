@@ -182,6 +182,14 @@ $user = $result->fetch_assoc();
                     </div>
                 </a>
             </div>
+            <div class="col-md-4">
+                <a href="changelog.php" class="text-decoration-none text-dark">
+                    <div class="card profile-box">
+                        <i class="bi bi-megaphone"></i>
+                        <h5 class="mb-0">Changelog</h5>
+                    </div>
+                </a>
+            </div>
             <?php if ($user['type'] === 'admin'): ?>
             <div class="col-md-4">
                 <a href="gestione-utenti.php" class="text-decoration-none text-dark">

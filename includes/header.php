@@ -78,6 +78,7 @@ $version = getLatestVersion($conn);
                             <li><a class="dropdown-item" href="crono-view.php">Nuovo Cronologico</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="definizioni.php">Definizioni</a></li>
+                            <li><a class="dropdown-item" href="changelog.php">Changelog</a></li>
                             <li><a class="dropdown-item" href="profilo.php">Profilo</a></li>
                             <?php if ($_SESSION['type'] === 'admin'): ?>
                             <li><hr class="dropdown-divider"></li>
