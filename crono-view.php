@@ -7,6 +7,18 @@ require_once 'includes/header.php';
 // Get timetable ID from URL
 $timetable_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
+// Fetch definizioni data for dropdowns
+$definizioni = [];
+$types = ['disciplina', 'categoria', 'classe', 'tipo', 'turno'];
+foreach ($types as $type) {
+    $stmt = $conn->prepare("SELECT * FROM definizioni WHERE definition_parent = ? ORDER BY definition ASC");
+    $stmt->bind_param("s", $type);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $definizioni[$type] = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+}
+
 // Fetch timetable data
 $timetable = null;
 if ($timetable_id > 0) {
@@ -487,27 +499,43 @@ if (!$timetable) {
                                 <div class="row g-3">
                                     <div class="col-md-2">
                                         <label for="discipline" class="form-label small mb-1">Disciplina</label>
-                                        <input type="text" class="form-control form-control-sm" id="discipline">
+                                        <select class="form-control form-control-sm" id="discipline">
+                                            <?php foreach ($definizioni['disciplina'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                     <div class="col-md-2">
                                         <label for="category" class="form-label small mb-1">Categoria</label>
-                                        <input type="text" class="form-control form-control-sm" id="category">
+                                        <select class="form-control form-control-sm" id="category">
+                                            <?php foreach ($definizioni['categoria'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                     <div class="col-md-2">
                                         <label for="class" class="form-label small mb-1">Classe</label>
-                                        <input type="text" class="form-control form-control-sm" id="class">
+                                        <select class="form-control form-control-sm" id="class">
+                                            <?php foreach ($definizioni['classe'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                     <div class="col-md-2">
                                         <label for="type" class="form-label small mb-1">Tipo</label>
                                         <select class="form-select form-select-sm" id="type">
-                                            <option value="Solo">Solo</option>
-                                            <option value="Coppia">Coppia</option>
-                                            <option value="Duo">Duo</option>
+                                            <?php foreach ($definizioni['tipo'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
                                         <label for="round" class="form-label small mb-1">Turno</label>
-                                        <input type="text" class="form-control form-control-sm" id="round" value="1° Turno Finale">
+                                        <select class="form-select form-select-sm" id="round">
+                                            <?php foreach ($definizioni['turno'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                     <div class="col-md-2">
                                         <label for="startNumber" class="form-label small mb-1">Da</label>
@@ -622,27 +650,43 @@ if (!$timetable) {
                             <div class="row g-3">
                                 <div class="col-md-2">
                                     <label for="editDiscipline" class="form-label small mb-1">Disciplina</label>
-                                    <input type="text" class="form-control form-control-sm" id="editDiscipline">
+                                    <select class="form-select form-select-sm" id="editDiscipline">
+                                            <?php foreach ($definizioni['disciplina'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                 </div>
                                 <div class="col-md-2">
                                     <label for="editCategory" class="form-label small mb-1">Categoria</label>
-                                    <input type="text" class="form-control form-control-sm" id="editCategory">
+                                    <select class="form-select form-select-sm" id="editCategory">
+                                            <?php foreach ($definizioni['categoria'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                 </div>
                                 <div class="col-md-2">
                                     <label for="editClass" class="form-label small mb-1">Classe</label>
-                                    <input type="text" class="form-control form-control-sm" id="editClass">
+                                    <select class="form-select form-select-sm" id="editClass">
+                                            <?php foreach ($definizioni['classe'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                 </div>
                                 <div class="col-md-2">
                                     <label for="editType" class="form-label small mb-1">Tipo</label>
                                     <select class="form-select form-select-sm" id="editType">
-                                        <option value="Solo">Solo</option>
-                                        <option value="Coppia">Coppia</option>
-                                        <option value="Duo">Duo</option>
+                                        <?php foreach ($definizioni['tipo'] as $def): ?>
+                                            <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
                                     <label for="editRound" class="form-label small mb-1">Turno</label>
-                                    <input type="text" class="form-control form-control-sm" id="editRound">
+                                    <select class="form-select form-select-sm" id="editRound">
+                                            <?php foreach ($definizioni['turno'] as $def): ?>
+                                                <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
                                 </div>
                                 <div class="col-md-2">
                                     <label for="editStartNumber" class="form-label small mb-1">Da</label>

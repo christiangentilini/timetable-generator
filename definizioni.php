@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare("INSERT INTO definizioni (definition, definition_parent, image_path) VALUES (?, ?, ?)");
                 $stmt->bind_param("sss", $definition, $parent, $image_path);
             } else {
-                $stmt = $conn->prepare("INSERT INTO definizioni (definition, definition_parent) VALUES (?, ?)");
+                $stmt = $conn->prepare("INSERT INTO definizioni (definition, definition_parent, image_path) VALUES (?, ?, NULL)");
                 $stmt->bind_param("ss", $definition, $parent);
             }
             
