@@ -1,97 +1,264 @@
 <?php
+ob_start(); // Start output buffering to prevent header issues
+
 require_once 'config/database.php';
 require_once 'config/session_check.php';
+
+// Gestione delle operazioni CRUD
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Aggiunta di una nuova definizione
+    if (isset($_POST['add_definition'])) {
+        $definition = trim($_POST['definition']);
+        $parent = $_POST['definition_parent'];
+        
+        if (!empty($definition)) {
+            $stmt = $conn->prepare("INSERT INTO definizioni (definition, definition_parent) VALUES (?, ?)");
+            $stmt->bind_param("ss", $definition, $parent);
+            
+            if ($stmt->execute()) {
+                $_SESSION['success'] = "Definizione aggiunta con successo.";
+            } else {
+                $_SESSION['error'] = "Errore nell'aggiunta della definizione: " . $conn->error;
+            }
+            $stmt->close();
+        } else {
+            $_SESSION['error'] = "Il campo definizione non può essere vuoto.";
+        }
+        
+        // Redirect per evitare il riinvio del form, mantenendo il tab attivo
+        $activeTab = isset($_POST['definition_parent']) ? $_POST['definition_parent'] : '';
+        header("Location: definizioni.php" . ($activeTab ? "?tab=$activeTab" : ""));
+        exit();
+    }
+    
+    // Eliminazione di una definizione
+    if (isset($_POST['delete_definition'])) {
+        $id = $_POST['definition_id'];
+        
+        $stmt = $conn->prepare("DELETE FROM definizioni WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        
+        if ($stmt->execute()) {
+            $_SESSION['success'] = "Definizione eliminata con successo.";
+        } else {
+            $_SESSION['error'] = "Errore nell'eliminazione della definizione: " . $conn->error;
+        }
+        $stmt->close();
+        
+        // Redirect mantenendo il tab attivo
+        $activeTab = isset($_POST['active_tab']) ? $_POST['active_tab'] : '';
+        header("Location: definizioni.php" . ($activeTab ? "?tab=$activeTab" : ""));
+        exit();
+    }
+    
+    // Modifica di una definizione
+    if (isset($_POST['edit_definition'])) {
+        $id = $_POST['definition_id'];
+        $definition = trim($_POST['definition']);
+        
+        if (!empty($definition)) {
+            $stmt = $conn->prepare("UPDATE definizioni SET definition = ? WHERE id = ?");
+            $stmt->bind_param("si", $definition, $id);
+            
+            if ($stmt->execute()) {
+                $_SESSION['success'] = "Definizione aggiornata con successo.";
+            } else {
+                $_SESSION['error'] = "Errore nell'aggiornamento della definizione: " . $conn->error;
+            }
+            $stmt->close();
+        } else {
+            $_SESSION['error'] = "Il campo definizione non può essere vuoto.";
+        }
+        
+        // Redirect mantenendo il tab attivo
+        $activeTab = isset($_POST['active_tab']) ? $_POST['active_tab'] : '';
+        header("Location: definizioni.php" . ($activeTab ? "?tab=$activeTab" : ""));
+        exit();
+    }
+}
+
+// Recupero delle definizioni dal database
+$definizioni = [];
+$types = ['disciplina', 'categoria', 'classe', 'tipo', 'turno'];
+
+foreach ($types as $type) {
+    $stmt = $conn->prepare("SELECT * FROM definizioni WHERE definition_parent = ? ORDER BY definition ASC");
+    $stmt->bind_param("s", $type);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $definizioni[$type] = [];
+    while ($row = $result->fetch_assoc()) {
+        $definizioni[$type][] = $row;
+    }
+    
+    $stmt->close();
+}
+
+// Include the header after all processing that might use header() redirects
 require_once 'includes/header.php';
+
+// Add custom styles for this page
 ?>
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Definizioni - Timetable Generator</title>
-    <link rel="icon" type="image/png" href="assets/favicon/favicon.png">
-    <link rel="apple-touch-icon" href="assets/favicon/favicon.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        body {
-            padding-top: 80px;
-            padding-bottom: 100px;
-            background-color: #f8f9fa;
-        }
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 500;
-        }
-        .version-text {
-            font-size: 0.875rem;
-            color: #ffffff !important;
-            margin-left: 0.5rem;
-        }
-        .profile-image {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 1rem;
-            overflow: hidden;
-        }
-        .floating-footer {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 1200px;
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            z-index: 1000;
-            font-size: 11px;
-        }
-        .floating-footer a {
-            font-size: 11px;
-        }
-    </style>
-</head>
-<body>
+<style>
+    .nav-tabs .nav-link {
+        color: #495057;
+    }
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    .definition-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        margin-bottom: 5px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .definition-actions {
+        display: flex;
+        gap: 5px;
+    }
+    .alert {
+        margin-top: 20px;
+    }
+    .floating-footer {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 40px);
+        max-width: 1200px;
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        z-index: 1000;
+        font-size: 11px;
+    }
+    .floating-footer a {
+        font-size: 11px;
+    }
+</style>
+
     <div class="container">
         <h2 class="mb-4">Definizioni</h2>
+        
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?php 
+                echo htmlspecialchars($_SESSION['success']); 
+                unset($_SESSION['success']);
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?php 
+                echo htmlspecialchars($_SESSION['error']); 
+                unset($_SESSION['error']);
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        
         <div class="card">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h5>Impostazioni Generali</h5>
-                        <form>
-                            <div class="mb-3">
-                                <label for="defaultDuration" class="form-label">Durata Predefinita (minuti)</label>
-                                <input type="number" class="form-control" id="defaultDuration" value="30">
+                <ul class="nav nav-tabs" id="definitionTabs" role="tablist">
+                    <?php foreach ($types as $index => $type): ?>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?php echo $index === 0 ? 'active' : ''; ?>" 
+                                    id="<?php echo $type; ?>-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#<?php echo $type; ?>" 
+                                    type="button" 
+                                    role="tab" 
+                                    aria-controls="<?php echo $type; ?>" 
+                                    aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>">
+                                <?php echo ucfirst($type); ?>
+                            </button>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                
+                <div class="tab-content mt-4" id="definitionTabsContent">
+                    <?php foreach ($types as $index => $type): ?>
+                        <div class="tab-pane fade <?php echo $index === 0 ? 'show active' : ''; ?>" 
+                             id="<?php echo $type; ?>" 
+                             role="tabpanel" 
+                             aria-labelledby="<?php echo $type; ?>-tab">
+                            
+                            <!-- Form per aggiungere una nuova definizione -->
+                            <form method="POST" action="" class="mb-4">
+                                <div class="input-group">
+                                    <input type="text" name="definition" class="form-control" placeholder="Aggiungi nuova <?php echo $type; ?>" required>
+                                    <input type="hidden" name="definition_parent" value="<?php echo $type; ?>">
+                                    <button type="submit" name="add_definition" class="btn btn-primary">Aggiungi</button>
+                                </div>
+                            </form>
+                            
+                            <!-- Lista delle definizioni esistenti -->
+                            <div class="definition-list">
+                                <?php if (empty($definizioni[$type])): ?>
+                                    <p class="text-muted">Nessuna definizione trovata per <?php echo $type; ?>.</p>
+                                <?php else: ?>
+                                    <?php foreach ($definizioni[$type] as $def): ?>
+                                        <div class="definition-item">
+                                            <span><?php echo htmlspecialchars($def['definition']); ?></span>
+                                            <div class="definition-actions">
+                                                <button type="button" class="btn btn-sm btn-outline-primary edit-btn" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editModal" 
+                                                        data-id="<?php echo $def['id']; ?>" 
+                                                        data-definition="<?php echo htmlspecialchars($def['definition']); ?>">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <form method="POST" action="" class="d-inline">
+                                                    <input type="hidden" name="definition_id" value="<?php echo $def['id']; ?>">
+                                                    <input type="hidden" name="active_tab" value="<?php echo $type; ?>">
+                                                    <button type="submit" name="delete_definition" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro di voler eliminare questa definizione?')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </div>
-                            <div class="mb-3">
-                                <label for="timeFormat" class="form-label">Formato Orario</label>
-                                <select class="form-select" id="timeFormat">
-                                    <option value="24">24 ore</option>
-                                    <option value="12">12 ore</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="col-md-6">
-                        <h5>Categorie</h5>
-                        <div class="mb-3">
-                            <button class="btn btn-outline-primary btn-sm">Aggiungi Categoria</button>
                         </div>
-                        <ul class="list-group">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Categoria 1
-                                <button class="btn btn-outline-danger btn-sm">Rimuovi</button>
-                            </li>
-                        </ul>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal per la modifica -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Modifica Definizione</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="">
+                    <div class="modal-body">
+                        <input type="hidden" name="definition_id" id="edit_definition_id">
+                        <input type="hidden" name="active_tab" id="edit_active_tab">
+                        <div class="mb-3">
+                            <label for="edit_definition" class="form-label">Definizione</label>
+                            <input type="text" class="form-control" id="edit_definition" name="definition" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                        <button type="submit" name="edit_definition" class="btn btn-primary">Salva</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -99,5 +266,35 @@ require_once 'includes/header.php';
     <?php require_once 'includes/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Script per gestire il modal di modifica e mantenere il tab attivo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestione del click sul pulsante di modifica
+            const editButtons = document.querySelectorAll('.edit-btn');
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const definition = this.getAttribute('data-definition');
+                    const activeTab = this.closest('.tab-pane').id;
+                    
+                    // Popolare il modal con i dati
+                    document.getElementById('edit_definition_id').value = id;
+                    document.getElementById('edit_definition').value = definition;
+                    document.getElementById('edit_active_tab').value = activeTab;
+                });
+            });
+            
+            // Attivare il tab corretto in base al parametro URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) {
+                const tabToActivate = document.getElementById(tabParam + '-tab');
+                if (tabToActivate) {
+                    const tab = new bootstrap.Tab(tabToActivate);
+                    tab.show();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
