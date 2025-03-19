@@ -1,6 +1,13 @@
 <?php
-session_start();
 require_once 'config/database.php';
+require_once 'config/session_check.php';
+require_once 'includes/header.php';
+
+// Se l'utente è già autenticato, reindirizza alla home
+if (isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
 
 $errors = [];
 $success = false;
@@ -68,141 +75,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrazione - Timetable Generator</title>
-    <link rel="icon" type="image/png" href="assets/favicon/favicon.png">
-    <link rel="apple-touch-icon" href="assets/favicon/favicon.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        body {
-            padding-top: 80px;
-            padding-bottom: 100px;
-            background-color: #f8f9fa;
-        }
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 500;
-        }
-        .version-text {
-            font-size: 0.875rem;
-            color: #ffffff !important;
-            margin-left: 0.5rem;
-        }
-        .floating-footer {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 1200px;
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            z-index: 1000;
-            font-size: 11px;
-        }
-        .floating-footer a {
-            font-size: 11px;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">Timetable Generator <span class="version-text">v1.0</span></a>
-            <?php if (isset($_SESSION['user_id'])): ?>
-            <div class="d-flex align-items-center">
-                <?php if (isset($_SESSION['profile_path']) && $_SESSION['profile_path']): ?>
-                    <img src="<?php echo htmlspecialchars($_SESSION['profile_path']); ?>" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                <?php else: ?>
-                    <i class="bi bi-person-circle text-white" style="font-size: 2rem;"></i>
-                <?php endif; ?>
-            </div>
-            <?php endif; ?>
-        </div>
-    </nav>
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="text-center mb-4">Registrazione</h2>
-                        
-                        <?php if ($success): ?>
-                            <div class="alert alert-success" role="alert">
-                                Registrazione completata con successo! <a href="login.php">Accedi ora</a>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if (!empty($errors)): ?>
-                            <div class="alert alert-danger">
-                                <ul class="mb-0">
-                                    <?php foreach ($errors as $error): ?>
-                                        <li><?php echo htmlspecialchars($error); ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        <?php endif; ?>
-
-                        <form method="POST" action="">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="nome" class="form-label">Nome</label>
-                                    <input type="text" class="form-control" id="nome" name="nome" maxlength="30">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="cognome" class="form-label">Cognome</label>
-                                    <input type="text" class="form-control" id="cognome" name="cognome" maxlength="30">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Nome Utente</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="confirm_password" class="form-label">Conferma Password</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Registrati</button>
-                            </div>
-                        </form>
-                        <div class="text-center mt-3">
-                            Hai già un account? <a href="login.php">Accedi</a>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Registrazione</h2>
+                    
+                    <?php if ($success): ?>
+                        <div class="alert alert-success" role="alert">
+                            Registrazione completata con successo! <a href="login.php">Accedi ora</a>
                         </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($errors)): ?>
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                <?php foreach ($errors as $error): ?>
+                                    <li><?php echo htmlspecialchars($error); ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+
+                    <form method="POST" action="">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="nome" class="form-label">Nome</label>
+                                <input type="text" class="form-control" id="nome" name="nome" maxlength="30">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cognome" class="form-label">Cognome</label>
+                                <input type="text" class="form-control" id="cognome" name="cognome" maxlength="30">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Nome Utente</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Conferma Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Registrati</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        Hai già un account? <a href="login.php">Accedi</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <footer class="floating-footer">
-        <div class="container text-center">
-            <span>© 2025 - Timetable Generator v1.0 by Christian Gentilini - All rights reserved</span>
-            <span class="mx-2">|</span>
-            <a href="privacy-policy.php" class="text-decoration-none">Privacy Policy</a>
-            <span class="mx-2">|</span>
-            <a href="cookie-policy.php" class="text-decoration-none">Cookie Policy</a>
-            <span class="mx-2">|</span>
-            <a href="terms.php" class="text-decoration-none">Termini e Condizioni</a>
-        </div>
-    </footer>
+<?php require_once 'includes/footer.php'; ?>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -2,28 +2,27 @@
 require_once 'config/database.php';
 require_once 'config/session_check.php';
 
-// Recupera il tipo di utente
+// Verifica se l'utente è admin
 $stmt = $conn->prepare("SELECT type FROM users WHERE id = ?");
 $stmt->bind_param("i", $_SESSION['user_id']);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-// Verifica se l'utente è admin
 if ($user['type'] !== 'admin') {
-    header('Location: index.php');
-    exit;
+    header("Location: index.php");
+    exit();
 }
 
-// Recupera tutti gli utenti
+require_once 'includes/header.php';
+
+// Recupera tutti gli utenti con il conteggio delle timetables
 $query = "SELECT u.*, 
           COALESCE((SELECT COUNT(*) FROM timetables WHERE user_created = u.id), 0) as timetables_count
           FROM users u
-          ORDER BY u.username";
+          ORDER BY u.id DESC";
 $result = $conn->query($query);
 
-// Include l'header comune
-require_once 'includes/header.php';
 ?>
 
 <div class="container">
@@ -61,10 +60,10 @@ require_once 'includes/header.php';
                             <td><?php echo $row['timetables_count']; ?></td>
                             <td><?php echo $row['last_login'] ? date('d/m/Y H:i', strtotime($row['last_login'])) : 'Mai'; ?></td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="editUser(<?php echo $row['id']; ?>)">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="editUser(<?php echo $row['id']; ?>)">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteUser(<?php echo $row['id']; ?>)">
+                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteUser(<?php echo $row['id']; ?>)">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </td>
@@ -281,5 +280,55 @@ function deleteUser(id) {
     }
 }
 </script>
+    <?php require_once 'includes/footer.php'; ?>
+    <style>
+        body {
+            padding-top: 80px;
+            padding-bottom: 100px;
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        .version-text {
+            font-size: 0.875rem;
+            color: #ffffff !important;
+            margin-left: 0.5rem;
+        }
+        .floating-footer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 1200px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            font-size: 11px;
+        }
+        .floating-footer a {
+            font-size: 11px;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #bb2d3b;
+            border-color: #b02a37;
+        }
+    </style>
 </body>
 </html> 

@@ -1,6 +1,7 @@
 <?php
 require_once 'config/database.php';
 require_once 'config/session_check.php';
+require_once 'includes/header.php';
 
 // Recupera il tipo di utente
 $stmt = $conn->prepare("SELECT type FROM users WHERE id = ?");
@@ -16,9 +17,6 @@ $query = "SELECT c.*, COUNT(cd.id) as items_count
           GROUP BY c.id 
           ORDER BY c.date DESC";
 $result = $conn->query($query);
-
-// Include l'header comune
-require_once 'includes/header.php';
 ?>
 
 <div class="container">
@@ -376,5 +374,45 @@ require_once 'includes/header.php';
         }
     }
 </script>
+    <?php require_once 'includes/footer.php'; ?>
+    <style>
+        body {
+            padding-top: 80px;
+            padding-bottom: 100px;
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        .version-text {
+            font-size: 0.875rem;
+            color: #ffffff !important;
+            margin-left: 0.5rem;
+        }
+        .floating-footer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 1200px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            font-size: 11px;
+        }
+        .floating-footer a {
+            font-size: 11px;
+        }
+        .changelog-card {
+            transition: transform 0.2s;
+        }
+        .changelog-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
 </body>
 </html>
