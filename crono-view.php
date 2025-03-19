@@ -530,13 +530,19 @@ if (!$timetable) {
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="round" class="form-label small mb-1">Turno</label>
-                                        <select class="form-select form-select-sm" id="round">
+                                        <label for="turno_numero" class="form-label small mb-1">N°</label>
+                                        <input type="number" class="form-control form-control-sm" id="turno_numero" min="1">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="turno_definition" class="form-label small mb-1">Turno</label>
+                                        <select class="form-select form-select-sm" id="turno_definition">
                                             <?php foreach ($definizioni['turno'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
+                                </div>
+                                <div class="row g-3 mt-2">
                                     <div class="col-md-2">
                                         <label for="startNumber" class="form-label small mb-1">Da</label>
                                         <input type="number" class="form-control form-control-sm" id="startNumber" min="1">
@@ -680,14 +686,20 @@ if (!$timetable) {
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <div class="col-md-2">
-                                    <label for="editRound" class="form-label small mb-1">Turno</label>
-                                    <select class="form-select form-select-sm" id="editRound">
+                                <div class="col-md-1">
+                                    <label for="edit_turno_numero" class="form-label small mb-1">N°</label>
+                                    <input type="number" class="form-control form-control-sm" id="edit_turno_numero" min="1">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="edit_turno_definition" class="form-label small mb-1">Turno</label>
+                                    <select class="form-select form-select-sm" id="edit_turno_definition">
                                             <?php foreach ($definizioni['turno'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
                                             <?php endforeach; ?>
-                                        </select>
+                                    </select>
                                 </div>
+                            </div>
+                            <div class="row g-3 mt-2">
                                 <div class="col-md-2">
                                     <label for="editStartNumber" class="form-label small mb-1">Da</label>
                                     <input type="number" class="form-control form-control-sm" id="editStartNumber" min="1">
@@ -930,7 +942,9 @@ if (!$timetable) {
                                 document.getElementById('editCategory').value = row.category || '';
                                 document.getElementById('editClass').value = row.class_name || '';
                                 document.getElementById('editType').value = row.type || 'Solo';
-                                document.getElementById('editRound').value = row.turn || '';
+                                const [editTurnoNum, editTurnoDef] = row.turn.split('° ');
+document.getElementById('edit_turno_numero').value = editTurnoNum;
+document.getElementById('edit_turno_definition').value = editTurnoDef;
                                 document.getElementById('editStartNumber').value = row.da || '';
                                 document.getElementById('editEndNumber').value = row.a || '';
                                 document.getElementById('editDances').value = row.balli || '';
@@ -977,7 +991,9 @@ if (!$timetable) {
                     formData.category = document.getElementById('editCategory').value;
                     formData.class_name = document.getElementById('editClass').value;
                     formData.type = document.getElementById('editType').value;
-                    formData.turn = document.getElementById('editRound').value;
+                    const editTurnoNum = document.getElementById('edit_turno_numero').value;
+const editTurnoDef = document.getElementById('edit_turno_definition').value;
+formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                     formData.da = document.getElementById('editStartNumber').value;
                     formData.a = document.getElementById('editEndNumber').value;
                     formData.balli = document.getElementById('editDances').value;
@@ -1110,7 +1126,9 @@ if (!$timetable) {
                     const category = document.getElementById('category').value;
                     const class_name = document.getElementById('class').value;
                     const type = document.getElementById('type').value;
-                    const turn = document.getElementById('round').value;
+                    const turnoNum = document.getElementById('turno_numero').value;
+const turnoDef = document.getElementById('turno_definition').value;
+const turn = `${turnoNum}° ${turnoDef}`;
                     const da = document.getElementById('startNumber').value;
                     const a = document.getElementById('endNumber').value;
                     const balli = document.getElementById('dances').value;
