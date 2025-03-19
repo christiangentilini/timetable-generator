@@ -10,10 +10,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_definition'])) {
         $definition = trim($_POST['definition']);
         $parent = $_POST['definition_parent'];
+        $image_path = '';
+        
+        // Gestione upload immagine per i loghi
+        if ($parent === 'logo' && isset($_FILES['logo_image']) && $_FILES['logo_image']['error'] === UPLOAD_ERR_OK) {
+            $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+            
+            if (!in_array($_FILES['logo_image']['type'], $allowed_types)) {
+                $_SESSION['error'] = "Formato immagine non supportato. Usa JPG, PNG, GIF o SVG";
+            } elseif ($_FILES['logo_image']['size'] > $max_size) {
+                $_SESSION['error'] = "L'immagine non può superare i 5MB";
+            } else {
+                $upload_dir = __DIR__ . '/assets/logos/';
+                
+                if (!file_exists($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
+                }
+                
+                $file_extension = pathinfo($_FILES['logo_image']['name'], PATHINFO_EXTENSION);
+                $new_filename = 'logo_' . time() . '_' . uniqid() . '.' . $file_extension;
+                $target_path = $upload_dir . $new_filename;
+                
+                if (move_uploaded_file($_FILES['logo_image']['tmp_name'], $target_path)) {
+                    $image_path = 'assets/logos/' . $new_filename;
+                } else {
+                    $_SESSION['error'] = "Errore durante il caricamento dell'immagine";
+                    $activeTab = isset($_POST['definition_parent']) ? $_POST['definition_parent'] : '';
+                    header("Location: definizioni.php" . ($activeTab ? "?tab=$activeTab" : ""));
+                    exit();
+                }
+            }
+        }
         
         if (!empty($definition)) {
-            $stmt = $conn->prepare("INSERT INTO definizioni (definition, definition_parent) VALUES (?, ?)");
-            $stmt->bind_param("ss", $definition, $parent);
+            if ($parent === 'logo' && !empty($image_path)) {
+                $stmt = $conn->prepare("INSERT INTO definizioni (definition, definition_parent, image_path) VALUES (?, ?, ?)");
+                $stmt->bind_param("sss", $definition, $parent, $image_path);
+            } else {
+                $stmt = $conn->prepare("INSERT INTO definizioni (definition, definition_parent) VALUES (?, ?)");
+                $stmt->bind_param("ss", $definition, $parent);
+            }
             
             if ($stmt->execute()) {
                 $_SESSION['success'] = "Definizione aggiunta con successo.";
@@ -79,7 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Recupero delle definizioni dal database
 $definizioni = [];
-$types = ['disciplina', 'categoria', 'classe', 'tipo', 'turno'];
+// Ensure these values match exactly what's being used in the form submissions
+// and don't exceed the 50 character limit of the definition_parent column
+$types = ['disciplina', 'categoria', 'classe', 'tipo', 'turno', 'logo', 'linea_descrittiva'];
 
 foreach ($types as $type) {
     $stmt = $conn->prepare("SELECT * FROM definizioni WHERE definition_parent = ? ORDER BY definition ASC");
@@ -142,6 +181,16 @@ require_once 'includes/header.php';
     .floating-footer a {
         font-size: 11px;
     }
+    .logo-preview {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+        margin-right: 10px;
+    }
+    .logo-definition-item {
+        display: flex;
+        align-items: center;
+    }
 </style>
 
     <div class="container">
@@ -194,13 +243,24 @@ require_once 'includes/header.php';
                              aria-labelledby="<?php echo $type; ?>-tab">
                             
                             <!-- Form per aggiungere una nuova definizione -->
-                            <form method="POST" action="" class="mb-4">
-                                <div class="input-group">
-                                    <input type="text" name="definition" class="form-control" placeholder="Aggiungi nuova <?php echo $type; ?>" required>
-                                    <input type="hidden" name="definition_parent" value="<?php echo $type; ?>">
-                                    <button type="submit" name="add_definition" class="btn btn-primary">Aggiungi</button>
-                                </div>
-                            </form>
+                            <?php if ($type === 'logo'): ?>
+                                <form method="POST" action="" class="mb-4" enctype="multipart/form-data">
+                                    <div class="input-group">
+                                        <input type="text" name="definition" class="form-control" placeholder="Nome del logo" required>
+                                        <input type="file" name="logo_image" class="form-control" accept="image/*" required>
+                                        <input type="hidden" name="definition_parent" value="<?php echo $type; ?>">
+                                        <button type="submit" name="add_definition" class="btn btn-primary">Aggiungi</button>
+                                    </div>
+                                </form>
+                            <?php else: ?>
+                                <form method="POST" action="" class="mb-4">
+                                    <div class="input-group">
+                                        <input type="text" name="definition" class="form-control" placeholder="Aggiungi nuova <?php echo $type; ?>" required>
+                                        <input type="hidden" name="definition_parent" value="<?php echo $type; ?>">
+                                        <button type="submit" name="add_definition" class="btn btn-primary">Aggiungi</button>
+                                    </div>
+                                </form>
+                            <?php endif; ?>
                             
                             <!-- Lista delle definizioni esistenti -->
                             <div class="definition-list">
@@ -209,7 +269,14 @@ require_once 'includes/header.php';
                                 <?php else: ?>
                                     <?php foreach ($definizioni[$type] as $def): ?>
                                         <div class="definition-item">
-                                            <span><?php echo htmlspecialchars($def['definition']); ?></span>
+                                            <?php if ($type === 'logo' && !empty($def['image_path'])): ?>
+                                                <div class="logo-definition-item">
+                                                    <img src="<?php echo htmlspecialchars($def['image_path']); ?>" class="logo-preview" alt="Logo">
+                                                    <span><?php echo htmlspecialchars($def['definition']); ?></span>
+                                                </div>
+                                            <?php else: ?>
+                                                <span><?php echo htmlspecialchars($def['definition']); ?></span>
+                                            <?php endif; ?>
                                             <div class="definition-actions">
                                                 <button type="button" class="btn btn-sm btn-outline-primary edit-btn" 
                                                         data-bs-toggle="modal" 
