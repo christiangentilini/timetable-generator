@@ -515,7 +515,7 @@ if (!$timetable) {
                                     </div>
                                     <div class="col-md-2">
                                         <label for="class" class="form-label small mb-1">Classe</label>
-                                        <select class="form-control form-control-sm" id="class">
+                                        <select class="form-control form-control-sm" id="className">
                                             <?php foreach ($definizioni['classe'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
                                             <?php endforeach; ?>
@@ -1124,7 +1124,7 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                 } else {
                     const discipline = document.getElementById('discipline').value;
                     const category = document.getElementById('category').value;
-                    const class_name = document.getElementById('class').value;
+                    const class_name = document.getElementById('className').value;
                     const type = document.getElementById('type').value;
                     const turnoNum = document.getElementById('turno_numero').value;
 const turnoDef = document.getElementById('turno_definition').value;
@@ -1187,9 +1187,9 @@ const turn = `${turnoNum}° ${turnoDef}`;
                 document.getElementById('description').value = '';
                 document.getElementById('discipline').value = '';
                 document.getElementById('category').value = '';
-                document.getElementById('class').value = '';
+                document.getElementById('className').value = '';
                 document.getElementById('type').value = 'Solo';
-                document.getElementById('round').value = '1° Turno Finale';
+                document.getElementById('turno_numero').value = '1° Turno Finale';
                 document.getElementById('startNumber').value = '';
                 document.getElementById('endNumber').value = '';
                 document.getElementById('dances').value = '';

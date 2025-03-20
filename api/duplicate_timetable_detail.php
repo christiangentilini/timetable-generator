@@ -43,8 +43,8 @@ try {
     $new_order = $current_order + 1;
 
     // Insert the duplicated row
-    $stmt = $conn->prepare("INSERT INTO timetable_details (timetable_id, entry_type, time_slot, description, discipline, category, class_name, type, turn, da, a, balli, batterie, order_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issssssssssssi", 
+    $stmt = $conn->prepare("INSERT INTO timetable_details (timetable_id, entry_type, time_slot, description, discipline, category, class_name, type, turn, da, a, balli, batterie, pannello, order_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("isssssssssssssi", 
         $timetable_id,
         $row['entry_type'],
         $row['time_slot'],
@@ -58,6 +58,7 @@ try {
         $row['a'],
         $row['balli'],
         $row['batterie'],
+        $row['pannello'],
         $new_order
     );
 

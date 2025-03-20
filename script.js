@@ -38,11 +38,11 @@ document.addEventListener('DOMContentLoaded', function() {
             category: document.getElementById('category').value,
             classValue: document.getElementById('class').value,
             type: document.getElementById('type').value,
-            round: document.getElementById('round').value
+            turno_numero: document.getElementById('turno_numero').value
         };
 
         addCompetition(competition);
         this.reset();
-        document.getElementById('round').value = '1° Turno Finale';
+        document.getElementById('turno_numero').value = '1° Turno Finale';
     });
 });

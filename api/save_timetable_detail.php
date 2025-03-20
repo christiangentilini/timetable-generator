@@ -79,9 +79,9 @@ if ($data['entry_type'] === 'descriptive') {
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("isssi", $data['timetable_id'], $data['entry_type'], $data['time_slot'], $data['description'], $next_order);
 } else {
-    $sql = "INSERT INTO timetable_details (timetable_id, entry_type, time_slot, discipline, category, class_name, type, turn, da, a, balli, batterie, order_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; 
+    $sql = "INSERT INTO timetable_details (timetable_id, entry_type, time_slot, discipline, category, class_name, type, turn, da, a, balli, batterie, pannello, order_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isssssssssssi", 
+    $stmt->bind_param("issssssssssssi", 
         $data['timetable_id'], 
         $data['entry_type'], 
         $data['time_slot'],
@@ -94,6 +94,7 @@ if ($data['entry_type'] === 'descriptive') {
         $data['a'],
         $data['balli'],
         $data['batterie'],
+        $data['pannello'],
         $next_order
     );
 }
