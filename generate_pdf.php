@@ -2,8 +2,9 @@
 require_once 'config/database.php';
 require_once 'config/session_check.php';
 
-// Get timetable ID from URL
+// Get timetable ID from URL and show_pannello parameter
 $timetable_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$show_pannello = isset($_GET['show_pannello']) ? (int)$_GET['show_pannello'] : 0;
 
 // Fetch timetable data
 $timetable = null;
@@ -249,7 +250,9 @@ if ($timetable_id > 0) {
                     <th>A</th>
                     <th>Balli</th>
                     <th>Batt.</th>
+                    <?php if ($show_pannello): ?>
                     <th>Pan.</th>
+                    <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
@@ -257,7 +260,7 @@ if ($timetable_id > 0) {
                     <?php if ($row['entry_type'] === 'descriptive'): ?>
                         <tr class="descriptive-row">
                             <td><?php echo htmlspecialchars($row['time_slot']); ?></td>
-                            <td colspan="10"><?php echo htmlspecialchars($row['description']); ?></td>
+                            <td colspan="<?php echo $show_pannello ? '10' : '9'; ?>"><?php echo htmlspecialchars($row['description']); ?></td>
                         </tr>
                     <?php else: ?>
                         <tr>
@@ -281,7 +284,9 @@ if ($timetable_id > 0) {
                             <td><?php echo htmlspecialchars($row['a'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($row['balli'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($row['batterie'] ?? ''); ?></td>
+                            <?php if ($show_pannello): ?>
                             <td><?php echo htmlspecialchars($row['pannello'] ?? ''); ?></td>
+                            <?php endif; ?>
                         </tr>
                     <?php endif; ?>
                 <?php endforeach; ?>
@@ -406,6 +411,7 @@ if ($timetable_id > 0) {
                 const rows = table.querySelectorAll('tbody tr');
                 
                 // Imposta le larghezze delle colonne
+                <?php if ($show_pannello): ?>
                 const columnWidths = [
                     contentWidth * 0.08, // Orario
                     contentWidth * 0.32, // Disciplina
@@ -419,6 +425,20 @@ if ($timetable_id > 0) {
                     contentWidth * 0.05, // Batterie
                     contentWidth * 0.05  // Pannello
                 ];
+                <?php else: ?>
+                const columnWidths = [
+                    contentWidth * 0.08, // Orario
+                    contentWidth * 0.35, // Disciplina
+                    contentWidth * 0.11, // Categoria
+                    contentWidth * 0.05, // Classe
+                    contentWidth * 0.09, // Tipo
+                    contentWidth * 0.09, // Turno
+                    contentWidth * 0.06, // Da
+                    contentWidth * 0.06, // A
+                    contentWidth * 0.06, // Balli
+                    contentWidth * 0.05  // Batterie
+                ];
+                <?php endif; ?>
                 
                 let currentY = startY;
                 const rowHeight = 7;

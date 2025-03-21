@@ -588,8 +588,12 @@ if (!$timetable) {
             </div>
 
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="card-title mb-0">Timetable</h3>
+                <div>
+                    <a href="generate_pdf.php?id=<?php echo $timetable_id; ?>&show_pannello=0" class="btn btn-secondary btn-sm" target="_blank">Stampa Timetable</a>
+                    <a href="generate_pdf.php?id=<?php echo $timetable_id; ?>&show_pannello=1" class="btn btn-secondary btn-sm" target="_blank">Stampa con Pannelli</a>
+                </div>
             </div>
             <div class="card-body">
                 <div class="d-flex">
@@ -618,9 +622,20 @@ if (!$timetable) {
                     </div>
                     <div class="ms-2" id="actionContainer" style="width: 40px;"></div>
                 </div>
-                <div class="mt-3">
-                    <a href="generate_pdf.php?id=<?php echo $timetable_id; ?>" class="btn btn-secondary" target="_blank">Stampa Timetable</a>
-                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Add event listener for double print button if needed
+                        if(document.getElementById('doppiaPdfBtn')) {
+                            document.getElementById('doppiaPdfBtn').addEventListener('click', function() {
+                                // Open both PDF versions in new tabs
+                                window.open('generate_pdf.php?id=<?php echo $timetable_id; ?>&show_pannello=0', '_blank');
+                                setTimeout(function() {
+                                    window.open('generate_pdf.php?id=<?php echo $timetable_id; ?>&show_pannello=1', '_blank');
+                                }, 500); // Small delay to prevent popup blocking
+                            });
+                        }
+                    });
+                </script>
             </div>
         </div>
     </div>
