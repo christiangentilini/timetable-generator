@@ -370,6 +370,11 @@ if (!$timetable) {
         .btn-group-toggle .btn {
             min-width: 100px;
             padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            margin-right: 0.25rem;
+        }
+        .btn-group-toggle .btn:last-child {
+            margin-right: 0;
         }
         .competition-logo {
             max-height: 120px;
@@ -432,10 +437,13 @@ if (!$timetable) {
         <div class="row">
             <div class="col-md-6 left">
                 <div class="card mb-4 left" style="margin-right: 10px;">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h3 class="card-title mb-0">Dati competizione</h3>
+                        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#competitionDataCollapse" aria-expanded="true" aria-controls="competitionDataCollapse">
+                            <i class="bi bi-chevron-up" id="competitionDataCollapseIcon"></i>
+                        </button>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body collapse show" id="competitionDataCollapse">
                         <div class="row">
                             <div class="col-md-9">
                                 <input type="text" class="form-control form-control-lg mb-2" id="competitionTitle" placeholder="Titolo della Competizione" value="<?php echo htmlspecialchars($timetable['titolo']); ?>">
@@ -463,19 +471,22 @@ if (!$timetable) {
             </div>
             <div class="col-md-6 right">
                 <div class="card mb-4 right" style="margin-left: 10px;">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h3 class="card-title mb-0">Inserisci Voce</h3>
+                        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#insertEntryCollapse" aria-expanded="true" aria-controls="insertEntryCollapse">
+                            <i class="bi bi-chevron-up" id="insertEntryCollapseIcon"></i>
+                        </button>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body collapse show" id="insertEntryCollapse">
                         <form id="competitionForm">
                             <div class="row g-3">
                                 <div class="col-md-2">
                                     <label for="time" class="form-label small mb-1">Orario</label>
                                     <input type="time" class="form-control form-control-sm" id="time" required>
                                 </div>
-                                <div class="col-md-10">
+                                <div class="col-md-5">
                                     <label class="form-label small mb-1">Tipo di riga</label>
-                                    <div class="btn-group" role="group" aria-label="Tipo di riga">
+                                    <div class="d-flex gap-2">
                                         <input type="radio" class="btn-check" name="rowType" id="normalRowType" value="normal" checked>
                                         <label class="btn btn-outline-primary btn-sm" for="normalRowType">Normale</label>
                                         <input type="radio" class="btn-check" name="rowType" id="descriptiveRowType" value="descriptive">
@@ -630,13 +641,13 @@ if (!$timetable) {
                                 <label for="editTime" class="form-label small mb-1">Orario</label>
                                 <input type="time" class="form-control form-control-sm" id="editTime" required>
                             </div>
-                            <div class="col-md-10">
+                            <div class="col-md-5">
                                 <label class="form-label small mb-1">Tipo di riga</label>
-                                <div class="btn-group" role="group" aria-label="Tipo di riga">
+                                <div class="d-flex gap-2">
                                     <input type="radio" class="btn-check" name="editRowType" id="editNormalRowType" value="normal">
-                                    <label class="btn btn-outline-primary btn-sm" for="editNormalRowType">Normale</label>
+                                    <label class="btn btn-outline-primary btn-sm rounded-0" for="editNormalRowType">Normale</label>
                                     <input type="radio" class="btn-check" name="editRowType" id="editDescriptiveRowType" value="descriptive">
-                                    <label class="btn btn-outline-primary btn-sm" for="editDescriptiveRowType">Descrittiva</label>
+                                    <label class="btn btn-outline-primary btn-sm rounded-0" for="editDescriptiveRowType">Descrittiva</label>
                                 </div>
                             </div>
                         </div>
@@ -733,10 +744,12 @@ if (!$timetable) {
     </div>
 
     <?php require_once 'includes/footer.php'; ?>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if Bootstrap is loaded
+            console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+            
+            // Rest of the code
             const timetableId = <?php echo $timetable_id; ?>;
             const updateFields = ['competitionTitle', 'competitionSubtitle', 'competitionDescription1', 'competitionDescription2', 'competitionDisclaimer'];
             const fieldMapping = {
@@ -1189,7 +1202,8 @@ const turn = `${turnoNum}° ${turnoDef}`;
                 document.getElementById('category').value = '';
                 document.getElementById('className').value = '';
                 document.getElementById('type').value = 'Solo';
-                document.getElementById('turno_numero').value = '1° Turno Finale';
+                document.getElementById('turno_numero').value = '';
+                document.getElementById('turno_definition').selectedIndex = 0;
                 document.getElementById('startNumber').value = '';
                 document.getElementById('endNumber').value = '';
                 document.getElementById('dances').value = '';
@@ -1227,6 +1241,36 @@ const turn = `${turnoNum}° ${turnoDef}`;
                         }, 500);
                     });
                 }
+            });
+
+            // Handle collapse toggle icons
+            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button => {
+                // Add console logging to debug collapse functionality
+                console.log('Setting up collapse listener for:', button.getAttribute('data-bs-target'));
+                
+                // Get the target element and icon element
+                const target = button.getAttribute('data-bs-target');
+                const iconElement = button.querySelector('i');
+                const targetElement = document.querySelector(target);
+                
+                // Set initial icon state based on collapse state
+                if (targetElement && !targetElement.classList.contains('show')) {
+                    iconElement.classList.remove('bi-chevron-up');
+                    iconElement.classList.add('bi-chevron-down');
+                }
+                
+                // Listen for Bootstrap collapse events
+                targetElement.addEventListener('hide.bs.collapse', function () {
+                    console.log('Collapse hiding:', target);
+                    iconElement.classList.remove('bi-chevron-up');
+                    iconElement.classList.add('bi-chevron-down');
+                });
+                
+                targetElement.addEventListener('show.bs.collapse', function () {
+                    console.log('Collapse showing:', target);
+                    iconElement.classList.remove('bi-chevron-down');
+                    iconElement.classList.add('bi-chevron-up');
+                });
             });
         });
     </script>

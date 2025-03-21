@@ -1,6 +1,10 @@
 <?php
+// Start output buffering to prevent 'headers already sent' warnings
+ob_start();
+
 require_once 'config/database.php';
-require_once 'config/session_check.php';
+// Don't include session_check.php here as it creates a redirect loop
+session_start();
 require_once 'includes/header.php';
 
 // Se l'utente è già autenticato, reindirizza alla home
