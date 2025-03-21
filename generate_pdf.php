@@ -408,11 +408,11 @@ if ($timetable_id > 0) {
                 // Imposta le larghezze delle colonne
                 const columnWidths = [
                     contentWidth * 0.08, // Orario
-                    contentWidth * 0.15, // Disciplina
-                    contentWidth * 0.15, // Categoria
-                    contentWidth * 0.10, // Classe
-                    contentWidth * 0.10, // Tipo
-                    contentWidth * 0.15, // Turno
+                    contentWidth * 0.32, // Disciplina
+                    contentWidth * 0.10, // Categoria
+                    contentWidth * 0.04, // Classe
+                    contentWidth * 0.08, // Tipo
+                    contentWidth * 0.08, // Turno
                     contentWidth * 0.05, // Da
                     contentWidth * 0.05, // A
                     contentWidth * 0.05, // Balli
