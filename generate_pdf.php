@@ -265,7 +265,17 @@ if ($timetable_id > 0) {
                             <td><?php echo htmlspecialchars($row['discipline'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($row['category'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($row['class_name'] ?? ''); ?></td>
-                            <td><?php echo htmlspecialchars($row['type'] ?? ''); ?></td>
+                            <td><?php 
+                                $type = $row['type'] ?? '';
+                                // Replace type names with abbreviations
+                                $type = str_ireplace('piccolo gruppo', 'P.G.', $type);
+                                $type = str_ireplace('gruppo danza', 'G.D.', $type);
+                                $type = str_ireplace('Solo femminile', 'SoloF', $type);
+                                $type = str_ireplace('solo femminile', 'SoloF', $type);
+                                $type = str_ireplace('Solo maschile', 'SoloM', $type);
+                                $type = str_ireplace('solo maschile', 'SoloM', $type);
+                                echo htmlspecialchars($type); 
+                            ?></td>
                             <td><?php echo htmlspecialchars($row['turn'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($row['da'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars($row['a'] ?? ''); ?></td>
