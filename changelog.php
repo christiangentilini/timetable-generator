@@ -175,8 +175,8 @@ $result = $conn->query($query);
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+<?php require_once 'includes/footer.php'; ?>
+<style>
     // Gestione form nuova nota di rilascio
     document.getElementById('newChangelogForm').addEventListener('submit', function(e) {
         e.preventDefault();

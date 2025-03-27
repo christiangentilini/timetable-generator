@@ -13,6 +13,35 @@ if (!isset($input['timetable_id']) || !isset($input['order_data']) || !is_array(
     exit;
 }
 
+// Validate timetable access permissions
+$can_edit = false;
+
+// Check if user is the owner
+$stmt = $conn->prepare("SELECT id FROM timetables WHERE id = ? AND user_created = ?");
+$stmt->bind_param("ii", $input['timetable_id'], $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $can_edit = true;
+} else {
+    // Check if user has edit permission through sharing
+    $stmt = $conn->prepare("SELECT id FROM timetable_shares WHERE timetable_id = ? AND user_id = ? AND permission_level = 'edit'");
+    $stmt->bind_param("ii", $input['timetable_id'], $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $can_edit = true;
+    }
+}
+
+if (!$can_edit) {
+    $response['error'] = 'Unauthorized access';
+    echo json_encode($response);
+    exit;
+}
+
 try {
     $conn->begin_transaction();
 

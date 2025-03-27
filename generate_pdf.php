@@ -9,12 +9,26 @@ $show_pannello = isset($_GET['show_pannello']) ? (int)$_GET['show_pannello'] : 0
 // Fetch timetable data
 $timetable = null;
 if ($timetable_id > 0) {
+    // Prima verifica se l'utente è il proprietario
     $stmt = $conn->prepare("SELECT * FROM timetables WHERE id = ? AND user_created = ?");
     $stmt->bind_param("ii", $timetable_id, $_SESSION['user_id']);
     $stmt->execute();
     $result = $stmt->get_result();
     $timetable = $result->fetch_assoc();
     $stmt->close();
+    
+    if (!$timetable) {
+        // Se non è il proprietario, verifica se è condiviso con l'utente
+        $stmt = $conn->prepare("SELECT t.* 
+                              FROM timetables t 
+                              JOIN timetable_shares ts ON t.id = ts.timetable_id 
+                              WHERE t.id = ? AND ts.user_id = ?");
+        $stmt->bind_param("ii", $timetable_id, $_SESSION['user_id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $timetable = $result->fetch_assoc();
+        $stmt->close();
+    }
 }
 
 if (!$timetable) {

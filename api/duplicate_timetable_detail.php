@@ -13,6 +13,34 @@ if (!$timetable_id || !$row_id) {
     exit;
 }
 
+// Validate timetable access permissions
+$can_edit = false;
+
+// Check if user is the owner
+$stmt = $conn->prepare("SELECT id FROM timetables WHERE id = ? AND user_created = ?");
+$stmt->bind_param("ii", $timetable_id, $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $can_edit = true;
+} else {
+    // Check if user has edit permission through sharing
+    $stmt = $conn->prepare("SELECT id FROM timetable_shares WHERE timetable_id = ? AND user_id = ? AND permission_level = 'edit'");
+    $stmt->bind_param("ii", $timetable_id, $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $can_edit = true;
+    }
+}
+
+if (!$can_edit) {
+    echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
+    exit;
+}
+
 // Get the row to duplicate
 $stmt = $conn->prepare("SELECT * FROM timetable_details WHERE id = ? AND timetable_id = ?");
 $stmt->bind_param("ii", $row_id, $timetable_id);

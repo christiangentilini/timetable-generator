@@ -90,5 +90,3 @@ $version = getLatestVersion($conn);
             </div>
         </div>
     </nav>
-</body>
-</html> 

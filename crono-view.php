@@ -21,31 +21,49 @@ foreach ($types as $type) {
 
 // Fetch timetable data
 $timetable = null;
+$is_owner = false;
+$can_edit = false;
+
 if ($timetable_id > 0) {
+    // Prima verifica se l'utente è il proprietario
     $stmt = $conn->prepare("SELECT * FROM timetables WHERE id = ? AND user_created = ?");
     $stmt->bind_param("ii", $timetable_id, $_SESSION['user_id']);
     $stmt->execute();
     $result = $stmt->get_result();
     $timetable = $result->fetch_assoc();
     $stmt->close();
+    
+    if ($timetable) {
+        $is_owner = true;
+        $can_edit = true;
+    } else {
+        // Se non è il proprietario, verifica se è condiviso con l'utente
+        $stmt = $conn->prepare("SELECT t.*, ts.permission_level 
+                              FROM timetables t 
+                              JOIN timetable_shares ts ON t.id = ts.timetable_id 
+                              WHERE t.id = ? AND ts.user_id = ?");
+        $stmt->bind_param("ii", $timetable_id, $_SESSION['user_id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $timetable = $result->fetch_assoc();
+        $stmt->close();
+        
+        if ($timetable) {
+            $can_edit = ($timetable['permission_level'] === 'edit');
+        }
+    }
 }
 
 if (!$timetable) {
     header("Location: cronologici.php");
     exit;
 }
+
+// Set the page title
+$pageTitle = "Nuovo Cronologico - Timetable Generator";
 ?>
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuovo Cronologico - Timetable Generator</title>
-    <link rel="icon" type="image/png" href="assets/favicon/favicon.png">
-    <link rel="apple-touch-icon" href="assets/favicon/favicon.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
+
+<style>
         body {
             padding-top: 80px;
             padding-bottom: 100px;
@@ -432,6 +450,25 @@ if (!$timetable) {
 </head>
 <body>
     <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><?php echo htmlspecialchars($timetable['titolo']); ?></h2>
+            <div>
+                <?php if ($is_owner): ?>
+                <a href="share_timetable.php?id=<?php echo $timetable_id; ?>" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-share me-2"></i>Condividi
+                </a>
+                <?php endif; ?>
+                <a href="cronologici.php" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Torna ai Cronologici
+                </a>
+            </div>
+        </div>
+        
+        <?php if (!$can_edit): ?>
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle me-2"></i> Stai visualizzando un cronologico condiviso in modalità sola lettura. Non hai i permessi per modificarlo.
+        </div>
+        <?php endif; ?>
        
 
         <div class="row">
@@ -446,13 +483,22 @@ if (!$timetable) {
                     <div class="card-body collapse show" id="competitionDataCollapse">
                         <div class="row">
                             <div class="col-md-9">
+                                <?php if ($can_edit): ?>
                                 <input type="text" class="form-control form-control-lg mb-2" id="competitionTitle" placeholder="Titolo della Competizione" value="<?php echo htmlspecialchars($timetable['titolo']); ?>">
                                 <input type="text" class="form-control mb-2" id="competitionSubtitle" placeholder="Sottotitolo" value="<?php echo htmlspecialchars($timetable['sottotitolo']); ?>">
                                 <textarea class="form-control mb-2" id="competitionDescription1" rows="1" placeholder="Prima riga di descrizione"><?php echo htmlspecialchars($timetable['desc1']); ?></textarea>
                                 <textarea class="form-control mb-2" id="competitionDescription2" rows="1" placeholder="Seconda riga di descrizione"><?php echo htmlspecialchars($timetable['desc2']); ?></textarea>
                                 <textarea class="form-control mb-2" id="competitionDisclaimer" rows="2" placeholder="Disclaimer"><?php echo htmlspecialchars($timetable['disclaimer']); ?></textarea>
+                                <?php else: ?>
+                                <h3 class="mb-2"><?php echo htmlspecialchars($timetable['titolo']); ?></h3>
+                                <h5 class="mb-2"><?php echo htmlspecialchars($timetable['sottotitolo']); ?></h5>
+                                <p class="mb-2"><?php echo htmlspecialchars($timetable['desc1']); ?></p>
+                                <p class="mb-2"><?php echo htmlspecialchars($timetable['desc2']); ?></p>
+                                <p class="mb-2 text-muted"><small><?php echo htmlspecialchars($timetable['disclaimer']); ?></small></p>
+                                <?php endif; ?>
                             </div>
                             <div class="col-md-3 text-center">
+                                <?php if ($can_edit): ?>
                                 <div class="logo-upload-box" id="logoUploadBox">
                                     <?php if (!empty($timetable['logo'])): ?>
                                         <img src="<?php echo htmlspecialchars($timetable['logo']); ?>" id="logoPreview" class="competition-logo mb-2" alt="Logo">
@@ -464,12 +510,25 @@ if (!$timetable) {
                                     <?php endif; ?>
                                 </div>
                                 <input type="file" class="d-none" id="logoUpload" accept="image/*">
+                                <?php else: ?>
+                                <div class="text-center">
+                                    <?php if (!empty($timetable['logo'])): ?>
+                                        <img src="<?php echo htmlspecialchars($timetable['logo']); ?>" class="competition-logo mb-2" alt="Logo">
+                                    <?php else: ?>
+                                        <div class="p-4 text-muted">
+                                            <i class="bi bi-image"></i>
+                                            <p class="mb-0">Nessun logo</p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 right">
+                <?php if ($can_edit): ?>
                 <div class="card mb-4 right" style="margin-left: 10px;">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h3 class="card-title mb-0">Inserisci Voce</h3>
@@ -478,6 +537,14 @@ if (!$timetable) {
                         </button>
                     </div>
                     <div class="card-body collapse show" id="insertEntryCollapse">
+                <?php else: ?>
+                <div class="card mb-4 right" style="margin-left: 10px;">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">Informazioni</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Stai visualizzando questo cronologico in modalità sola lettura.</p>
+                <?php endif; ?>
                         <form id="competitionForm">
                             <div class="row g-3">
                                 <div class="col-md-2">
@@ -821,6 +888,7 @@ if (!$timetable) {
                 const scheduleBody = document.getElementById('scheduleBody');
                 const dragHandleContainer = document.getElementById('dragHandleContainer');
                 const actionContainer = document.getElementById('actionContainer');
+                const canEdit = <?php echo $can_edit ? 'true' : 'false'; ?>;
                 
                 scheduleBody.innerHTML = '';
                 dragHandleContainer.innerHTML = '';
@@ -828,9 +896,11 @@ if (!$timetable) {
                 
                 rows.forEach(row => {
                     const tr = document.createElement('tr');
-                    tr.draggable = true;
+                    tr.draggable = canEdit;
                     tr.dataset.rowId = row.id;
-                    tr.classList.add('draggable-row');
+                    if (canEdit) {
+                        tr.classList.add('draggable-row');
+                    }
                     if (row.entry_type === 'descriptive') {
                         tr.classList.add('descriptive-row');
                         tr.innerHTML = `
@@ -838,19 +908,25 @@ if (!$timetable) {
                             <td colspan="10">${row.description}</td>
                         `;
                         
-                        const dragHandle = document.createElement('div');
-                        dragHandle.innerHTML = `<i class="bi bi-grip-vertical drag-handle"></i>`;
-                        document.getElementById('dragHandleContainer').appendChild(dragHandle);
-                        
-                        const actionButton = document.createElement('div');
-                        actionButton.innerHTML = `
-                            <div class="d-flex">
-                                <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
-                            </div>
-                        `;
-                        document.getElementById('actionContainer').appendChild(actionButton);
+                        if (canEdit) {
+                            const dragHandle = document.createElement('div');
+                            dragHandle.innerHTML = `<i class="bi bi-grip-vertical drag-handle"></i>`;
+                            document.getElementById('dragHandleContainer').appendChild(dragHandle);
+                            
+                            const actionButton = document.createElement('div');
+                            actionButton.innerHTML = `
+                                <div class="d-flex">
+                                    <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
+                                </div>
+                            `;
+                            document.getElementById('actionContainer').appendChild(actionButton);
+                        } else {
+                            // Add empty div for spacing in read-only mode
+                            document.getElementById('dragHandleContainer').appendChild(document.createElement('div'));
+                            document.getElementById('actionContainer').appendChild(document.createElement('div'));
+                        }
                     } else {
                         tr.innerHTML = `
                             <td>${row.time_slot}</td>
@@ -866,19 +942,25 @@ if (!$timetable) {
                             <td>${row.pannello || ''}</td>
                         `;
                         
-                        const dragHandle = document.createElement('div');
-                        dragHandle.innerHTML = `<i class="bi bi-grip-vertical drag-handle"></i>`;
-                        document.getElementById('dragHandleContainer').appendChild(dragHandle);
-                        
-                        const actionButton = document.createElement('div');
-                        actionButton.innerHTML = `
-                            <div class="d-flex">
-                                <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
-                            </div>
-                        `;
-                        document.getElementById('actionContainer').appendChild(actionButton);
+                        if (canEdit) {
+                            const dragHandle = document.createElement('div');
+                            dragHandle.innerHTML = `<i class="bi bi-grip-vertical drag-handle"></i>`;
+                            document.getElementById('dragHandleContainer').appendChild(dragHandle);
+                            
+                            const actionButton = document.createElement('div');
+                            actionButton.innerHTML = `
+                                <div class="d-flex">
+                                    <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
+                                </div>
+                            `;
+                            document.getElementById('actionContainer').appendChild(actionButton);
+                        } else {
+                            // Add empty div for spacing in read-only mode
+                            document.getElementById('dragHandleContainer').appendChild(document.createElement('div'));
+                            document.getElementById('actionContainer').appendChild(document.createElement('div'));
+                        }
                     }
                     scheduleBody.appendChild(tr);
                 });
@@ -1072,59 +1154,62 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
             // Drag and drop functionality
             const scheduleBody = document.getElementById('scheduleBody');
             let draggedRow = null;
+            const canEdit = <?php echo $can_edit ? 'true' : 'false'; ?>;
 
-            scheduleBody.addEventListener('dragstart', (e) => {
-                draggedRow = e.target.closest('tr');
-                e.target.style.opacity = '0.5';
-            });
-
-            scheduleBody.addEventListener('dragend', (e) => {
-                e.target.style.opacity = '';
-            });
-
-            scheduleBody.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                const row = e.target.closest('tr');
-                if (row && row !== draggedRow) {
-                    const rect = row.getBoundingClientRect();
-                    const midpoint = rect.top + rect.height / 2;
-                    if (e.clientY < midpoint) {
-                        row.parentNode.insertBefore(draggedRow, row);
-                    } else {
-                        row.parentNode.insertBefore(draggedRow, row.nextSibling);
-                    }
-                }
-            });
-
-            scheduleBody.addEventListener('dragend', (e) => {
-                const rows = Array.from(scheduleBody.querySelectorAll('tr'));
-                const orderData = rows.map((row, index) => ({
-                    id: parseInt(row.dataset.rowId),
-                    order: index + 1
-                }));
-
-                fetch('/api/update_timetable_order.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        timetable_id: timetableId,
-                        order_data: orderData
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        console.error('Reorder failed:', data.error);
-                        loadTimetableDetails(); // Reload original order if failed
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    loadTimetableDetails(); // Reload original order if failed
+            if (canEdit) {
+                scheduleBody.addEventListener('dragstart', (e) => {
+                    draggedRow = e.target.closest('tr');
+                    e.target.style.opacity = '0.5';
                 });
-            });
+
+                scheduleBody.addEventListener('dragend', (e) => {
+                    e.target.style.opacity = '';
+                });
+
+                scheduleBody.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const row = e.target.closest('tr');
+                    if (row && row !== draggedRow) {
+                        const rect = row.getBoundingClientRect();
+                        const midpoint = rect.top + rect.height / 2;
+                        if (e.clientY < midpoint) {
+                            row.parentNode.insertBefore(draggedRow, row);
+                        } else {
+                            row.parentNode.insertBefore(draggedRow, row.nextSibling);
+                        }
+                    }
+                });
+
+                scheduleBody.addEventListener('dragend', (e) => {
+                    const rows = Array.from(scheduleBody.querySelectorAll('tr'));
+                    const orderData = rows.map((row, index) => ({
+                        id: parseInt(row.dataset.rowId),
+                        order: index + 1
+                    }));
+
+                    fetch('/api/update_timetable_order.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            timetable_id: timetableId,
+                            order_data: orderData
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('Reorder failed:', data.error);
+                            loadTimetableDetails(); // Reload original order if failed
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loadTimetableDetails(); // Reload original order if failed
+                    });
+                });
+            }
 
             // Handle row submission
             document.getElementById('addRowBtn').addEventListener('click', function() {
@@ -1289,5 +1374,3 @@ const turn = `${turnoNum}° ${turnoDef}`;
             });
         });
     </script>
-</body>
-</html>

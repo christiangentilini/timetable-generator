@@ -3,10 +3,22 @@ require_once 'config/database.php';
 require_once 'config/session_check.php';
 require_once 'includes/header.php';
 
-// Fetch timetables for current user
+// Fetch timetables for current user (both created and shared)
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT * FROM timetables WHERE user_created = ? ORDER BY id DESC");
-$stmt->bind_param("i", $user_id);
+
+// Query per ottenere sia i cronologici creati dall'utente che quelli condivisi con lui
+$query = "SELECT t.*, 
+          CASE 
+              WHEN t.user_created = ? THEN 'owner' 
+              ELSE ts.permission_level 
+          END as access_type 
+          FROM timetables t 
+          LEFT JOIN timetable_shares ts ON t.id = ts.timetable_id AND ts.user_id = ? 
+          WHERE t.user_created = ? OR ts.id IS NOT NULL 
+          ORDER BY t.id DESC";
+
+$stmt = $conn->prepare($query);
+$stmt->bind_param("iii", $user_id, $user_id, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $timetables = $result->fetch_all(MYSQLI_ASSOC);
@@ -115,7 +127,16 @@ $stmt->close();
                                     <img src="<?php echo htmlspecialchars($timetable['logo']); ?>" alt="Logo" class="timetable-logo w-100">
                                 </div>
                                 <div class="col-8">
-                                    <h5 class="card-title mb-2"><?php echo htmlspecialchars($timetable['titolo']); ?></h5>
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="card-title mb-2"><?php echo htmlspecialchars($timetable['titolo']); ?></h5>
+                                        <?php if ($timetable['access_type'] === 'owner'): ?>
+                                            <span class="badge bg-primary">Proprietario</span>
+                                        <?php elseif ($timetable['access_type'] === 'edit'): ?>
+                                            <span class="badge bg-warning">Modifica</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-info">Visualizzazione</span>
+                                        <?php endif; ?>
+                                    </div>
                                     <p class="card-text text-muted mb-2"><?php echo htmlspecialchars($timetable['sottotitolo']); ?></p>
                                     <p class="card-text mb-1"><?php echo htmlspecialchars($timetable['desc1']); ?></p>
                                     <p class="card-text mb-0"><?php echo htmlspecialchars($timetable['desc2']); ?></p>
@@ -179,7 +200,5 @@ $stmt->close();
     </div>
 
     <?php require_once 'includes/footer.php'; ?>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
