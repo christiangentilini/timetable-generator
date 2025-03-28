@@ -69,6 +69,12 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
             padding-bottom: 100px;
             background-color: #f8f9fa;
         }
+        .required-field:after {
+            content: ' *';
+            color: #dc3545;
+            font-weight: bold;
+        }
+        /* Removed red border styling for required inputs */
         .navbar-brand {
             font-size: 1.5rem;
             font-weight: 500;
@@ -545,10 +551,13 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                     <div class="card-body">
                         <p>Stai visualizzando questo cronologico in modalità sola lettura.</p>
                 <?php endif; ?>
+                        <div class="alert alert-info mb-2" role="alert">
+                            <small><i class="bi bi-info-circle me-1"></i> I campi contrassegnati con <span style="color: #dc3545; font-weight: bold;">*</span> sono obbligatori.</small>
+                        </div>
                         <form id="competitionForm">
                             <div class="row g-3">
                                 <div class="col-md-2">
-                                    <label for="time" class="form-label small mb-1">Orario</label>
+                                    <label for="time" class="form-label small mb-1 required-field">Orario</label>
                                     <input type="time" class="form-control form-control-sm" id="time" required>
                                 </div>
                                 <div class="col-md-5">
@@ -566,7 +575,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                             <div class="descriptive-fields hidden" id="descriptiveFields">
                                 <div class="row g-3">
                                     <div class="col-md-12">
-                                        <label for="description" class="form-label small mb-1">Descrizione</label>
+                                        <label for="description" class="form-label small mb-1 required-field">Descrizione</label>
                                         <input type="text" class="form-control form-control-sm" id="description">
                                     </div>
                                 </div>
@@ -576,7 +585,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                             <div class="normal-fields" id="normalFields">
                                 <div class="row g-3">
                                     <div class="col-md-2">
-                                        <label for="discipline" class="form-label small mb-1">Disciplina</label>
+                                        <label for="discipline" class="form-label small mb-1 required-field">Disciplina</label>
                                         <select class="form-control form-control-sm" id="discipline">
                                             <?php foreach ($definizioni['disciplina'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -584,7 +593,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="category" class="form-label small mb-1">Categoria</label>
+                                        <label for="category" class="form-label small mb-1 required-field">Categoria</label>
                                         <select class="form-control form-control-sm" id="category">
                                             <?php foreach ($definizioni['categoria'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -592,7 +601,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="class" class="form-label small mb-1">Classe</label>
+                                        <label for="class" class="form-label small mb-1 required-field">Classe</label>
                                         <select class="form-control form-control-sm" id="className">
                                             <?php foreach ($definizioni['classe'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -600,7 +609,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="type" class="form-label small mb-1">Tipo</label>
+                                        <label for="type" class="form-label small mb-1 required-field">Tipo</label>
                                         <select class="form-select form-select-sm" id="type">
                                             <?php foreach ($definizioni['tipo'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -608,11 +617,11 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="turno_numero" class="form-label small mb-1">N°</label>
+                                        <label for="turno_numero" class="form-label small mb-1 required-field">N°</label>
                                         <input type="number" class="form-control form-control-sm" id="turno_numero" min="1">
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="turno_definition" class="form-label small mb-1">Turno</label>
+                                        <label for="turno_definition" class="form-label small mb-1 required-field">Turno</label>
                                         <select class="form-select form-select-sm" id="turno_definition">
                                             <?php foreach ($definizioni['turno'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -622,19 +631,19 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                 </div>
                                 <div class="row g-3 mt-2">
                                     <div class="col-md-2">
-                                        <label for="startNumber" class="form-label small mb-1">Da</label>
+                                        <label for="startNumber" class="form-label small mb-1 required-field">Da</label>
                                         <input type="number" class="form-control form-control-sm" id="startNumber" min="1">
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="endNumber" class="form-label small mb-1">A</label>
+                                        <label for="endNumber" class="form-label small mb-1 required-field">A</label>
                                         <input type="number" class="form-control form-control-sm" id="endNumber" min="1">
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="dances" class="form-label small mb-1">Balli</label>
+                                        <label for="dances" class="form-label small mb-1 required-field">Balli</label>
                                         <input type="number" class="form-control form-control-sm" id="dances" min="1">
                                     </div>
                                     <div class="col-md-2">
-                                        <label for="heats" class="form-label small mb-1">Batterie</label>
+                                        <label for="heats" class="form-label small mb-1 required-field">Batterie</label>
                                         <input type="number" class="form-control form-control-sm" id="heats" min="1">
                                     </div>
                                     <div class="col-md-2">
@@ -720,7 +729,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                         <input type="hidden" id="editRowId">
                         <div class="row g-3">
                             <div class="col-md-2">
-                                <label for="editTime" class="form-label small mb-1">Orario</label>
+                                <label for="editTime" class="form-label small mb-1 required-field">Orario</label>
                                 <input type="time" class="form-control form-control-sm" id="editTime" required>
                             </div>
                             <div class="col-md-5">
@@ -738,7 +747,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                         <div class="descriptive-fields hidden" id="editDescriptiveFields">
                             <div class="row g-3">
                                 <div class="col-md-12">
-                                    <label for="editDescription" class="form-label small mb-1">Descrizione</label>
+                                    <label for="editDescription" class="form-label small mb-1 required-field">Descrizione</label>
                                     <input type="text" class="form-control form-control-sm" id="editDescription">
                                 </div>
                             </div>
@@ -748,7 +757,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                         <div class="normal-fields" id="editNormalFields">
                             <div class="row g-3">
                                 <div class="col-md-2">
-                                    <label for="editDiscipline" class="form-label small mb-1">Disciplina</label>
+                                    <label for="editDiscipline" class="form-label small mb-1 required-field">Disciplina</label>
                                     <select class="form-select form-select-sm" id="editDiscipline">
                                             <?php foreach ($definizioni['disciplina'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -756,7 +765,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                         </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <label for="editCategory" class="form-label small mb-1">Categoria</label>
+                                    <label for="editCategory" class="form-label small mb-1 required-field">Categoria</label>
                                     <select class="form-select form-select-sm" id="editCategory">
                                             <?php foreach ($definizioni['categoria'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -764,7 +773,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                         </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <label for="editClass" class="form-label small mb-1">Classe</label>
+                                    <label for="editClass" class="form-label small mb-1 required-field">Classe</label>
                                     <select class="form-select form-select-sm" id="editClass">
                                             <?php foreach ($definizioni['classe'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -772,7 +781,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                         </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <label for="editType" class="form-label small mb-1">Tipo</label>
+                                    <label for="editType" class="form-label small mb-1 required-field">Tipo</label>
                                     <select class="form-select form-select-sm" id="editType">
                                         <?php foreach ($definizioni['tipo'] as $def): ?>
                                             <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -780,11 +789,11 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                     </select>
                                 </div>
                                 <div class="col-md-1">
-                                    <label for="edit_turno_numero" class="form-label small mb-1">N°</label>
+                                    <label for="edit_turno_numero" class="form-label small mb-1 required-field">N°</label>
                                     <input type="number" class="form-control form-control-sm" id="edit_turno_numero" min="1">
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="edit_turno_definition" class="form-label small mb-1">Turno</label>
+                                    <label for="edit_turno_definition" class="form-label small mb-1 required-field">Turno</label>
                                     <select class="form-select form-select-sm" id="edit_turno_definition">
                                             <?php foreach ($definizioni['turno'] as $def): ?>
                                                 <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
@@ -794,19 +803,19 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                             </div>
                             <div class="row g-3 mt-2">
                                 <div class="col-md-2">
-                                    <label for="editStartNumber" class="form-label small mb-1">Da</label>
+                                    <label for="editStartNumber" class="form-label small mb-1 required-field">Da</label>
                                     <input type="number" class="form-control form-control-sm" id="editStartNumber" min="1">
                                 </div>
                                 <div class="col-md-2">
-                                    <label for="editEndNumber" class="form-label small mb-1">A</label>
+                                    <label for="editEndNumber" class="form-label small mb-1 required-field">A</label>
                                     <input type="number" class="form-control form-control-sm" id="editEndNumber" min="1">
                                 </div>
                                 <div class="col-md-2">
-                                    <label for="editDances" class="form-label small mb-1">Balli</label>
+                                    <label for="editDances" class="form-label small mb-1 required-field">Balli</label>
                                     <input type="number" class="form-control form-control-sm" id="editDances" min="1">
                                 </div>
                                 <div class="col-md-2">
-                                    <label for="editHeats" class="form-label small mb-1">Batterie</label>
+                                    <label for="editHeats" class="form-label small mb-1 required-field">Batterie</label>
                                     <input type="number" class="form-control form-control-sm" id="editHeats" min="1">
                                 </div>
                                 <div class="col-md-2">
