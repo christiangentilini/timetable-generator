@@ -110,7 +110,7 @@ $stmt->close();
         </div>
         <?php endif; ?>
 
-        <div class="row g-4">
+        <div class="row">
             <?php if (empty($timetables)): ?>
             <div class="col-12">
                 <div class="alert alert-info" role="alert">
@@ -119,16 +119,23 @@ $stmt->close();
             </div>
             <?php else: ?>
                 <?php foreach ($timetables as $timetable): ?>
-                <div class="col-md-6 col-lg-4">
+                <div class="col-12 mb-4">
                     <div class="card timetable-card h-100">
                         <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-4">
-                                    <img src="<?php echo htmlspecialchars($timetable['logo']); ?>" alt="Logo" class="timetable-logo w-100">
-                                </div>
-                                <div class="col-8">
-                                    <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex justify-content-between">
+                                <div class="d-flex flex-wrap align-items-center" style="flex: 1;">
+                                    <div class="flex-shrink-0 me-3" style="width: 120px">
+                                        <img src="<?php echo htmlspecialchars($timetable['logo']); ?>" alt="Logo" class="timetable-logo w-100">
+                                    </div>
+                                    <div class="flex-grow-1">
                                         <h5 class="card-title mb-2"><?php echo htmlspecialchars($timetable['titolo']); ?></h5>
+                                        <p class="card-text text-muted mb-2"><?php echo htmlspecialchars($timetable['sottotitolo']); ?></p>
+                                        <p class="card-text mb-1"><?php echo htmlspecialchars($timetable['desc1']); ?></p>
+                                        <p class="card-text mb-0"><?php echo htmlspecialchars($timetable['desc2']); ?></p>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column justify-content-between" style="width: auto;">
+                                    <div class="d-flex justify-content-end">
                                         <?php if ($timetable['access_type'] === 'owner'): ?>
                                             <span class="badge bg-primary">Proprietario</span>
                                         <?php elseif ($timetable['access_type'] === 'edit'): ?>
@@ -137,15 +144,20 @@ $stmt->close();
                                             <span class="badge bg-info">Visualizzazione</span>
                                         <?php endif; ?>
                                     </div>
-                                    <p class="card-text text-muted mb-2"><?php echo htmlspecialchars($timetable['sottotitolo']); ?></p>
-                                    <p class="card-text mb-1"><?php echo htmlspecialchars($timetable['desc1']); ?></p>
-                                    <p class="card-text mb-0"><?php echo htmlspecialchars($timetable['desc2']); ?></p>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a href="crono-view.php?id=<?php echo $timetable['id']; ?>" class="btn btn-primary">
+                                            <i class="bi bi-eye me-2"></i>Visualizza
+                                        </a>
+                                        <?php if ($timetable['access_type'] === 'owner'): ?>
+                                            <button class="btn btn-success duplicate-timetable" data-id="<?php echo $timetable['id']; ?>">
+                                                <i class="bi bi-files me-2"></i>Duplica
+                                            </button>
+                                            <button class="btn btn-danger delete-timetable" data-id="<?php echo $timetable['id']; ?>">
+                                                <i class="bi bi-trash me-2"></i>Elimina
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="text-center mt-3">
-                                <a href="crono-view.php?id=<?php echo $timetable['id']; ?>" class="btn btn-primary">
-                                    <i class="bi bi-eye me-2"></i>Visualizza
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -233,6 +245,64 @@ $stmt->close();
     <?php require_once 'includes/footer.php'; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Gestione duplicazione cronologico
+    document.querySelectorAll('.duplicate-timetable').forEach(button => {
+        button.addEventListener('click', function() {
+            const timetableId = this.dataset.id;
+            
+            if (confirm('Sei sicuro di voler duplicare questo cronologico?')) {
+                fetch('api/duplicate_timetable.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: timetableId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Errore durante la duplicazione: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Si è verificato un errore durante la duplicazione');
+                });
+            }
+        });
+    });
+
+    // Gestione eliminazione cronologico
+    document.querySelectorAll('.delete-timetable').forEach(button => {
+        button.addEventListener('click', function() {
+            const timetableId = this.dataset.id;
+            
+            if (confirm('Sei sicuro di voler eliminare questo cronologico? Tutti i dati associati verranno cancellati.')) {
+                fetch('api/delete_timetable.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: timetableId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Errore durante l\'eliminazione: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Si è verificato un errore durante l\'eliminazione');
+                });
+            }
+        });
+    });
+
     // Gestione selezione logo dalla galleria
     document.querySelectorAll('.select-logo').forEach(button => {
         button.addEventListener('click', function() {

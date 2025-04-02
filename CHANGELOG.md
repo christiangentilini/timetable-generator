@@ -1,6 +1,6 @@
 # Changelog
 
-## Versione 1.0
+## Versione 1.0 [WRITED]
 
 ### Funzionalità Principali
 - Implementazione del sistema di gestione cronologici
@@ -38,3 +38,10 @@
 - Gestione completa degli utenti
 - Monitoraggio delle attività
 - Sistema di changelog integrato
+
+## Versione 1.1 [TO WRITE]
+### Funzionalità Principali
+- Aggiunta la duplicazione e l'eliminazione dei cronologici
+
+### Interfaccia e Design
+- Riorganizzata la pagina cronologici con un ordine più chiaro
