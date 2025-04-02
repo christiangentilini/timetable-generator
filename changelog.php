@@ -176,7 +176,7 @@ $result = $conn->query($query);
 </div>
 
 <?php require_once 'includes/footer.php'; ?>
-<style>
+<script>
     // Gestione form nuova nota di rilascio
     document.getElementById('newChangelogForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -270,11 +270,19 @@ $result = $conn->query($query);
     // Gestione form modifica nota di rilascio
     document.getElementById('editChangelogForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
+        const formData = new FormData();
         
-        // Rimuovi gli item vuoti
-        const items = Array.from(formData.getAll('items[]')).filter(item => item.trim() !== '');
-        formData.delete('items[]');
+        // Aggiungi i campi del form
+        formData.append('id', document.getElementById('edit_id').value);
+        formData.append('title', document.getElementById('edit_title').value);
+        formData.append('version', document.getElementById('edit_version').value);
+        formData.append('date', document.getElementById('edit_date').value);
+        
+        // Gestisci gli items come array
+        const items = Array.from(document.querySelectorAll('#edit-items-container .item-input'))
+            .map(input => input.value)
+            .filter(item => item.trim() !== '');
+        
         items.forEach(item => formData.append('items[]', item));
         
         fetch('update_changelog.php', {
@@ -374,8 +382,8 @@ $result = $conn->query($query);
         }
     }
 </script>
-    <?php require_once 'includes/footer.php'; ?>
-    <style>
+<?php require_once 'includes/footer.php'; ?>
+<style>
         body {
             padding-top: 80px;
             padding-bottom: 100px;

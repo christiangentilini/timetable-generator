@@ -162,7 +162,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
             height: 100%;
             font-size: 14px;
         }
-        #dragHandleContainer, #actionContainer {
+        #dragHandleContainer, #actionContainer, #checkboxContainer {
             display: flex;
             flex-direction: column;
             margin-top: 42px;
@@ -173,7 +173,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
             padding: 0 50px;
         }
         
-        #dragHandleContainer > div, #actionContainer > div {
+        #dragHandleContainer > div, #actionContainer > div, #checkboxContainer > div {
             height: 38px;
             display: flex;
             align-items: center;
@@ -190,13 +190,34 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
             margin-bottom: 4px;
         }
         
-        .descriptive-row + #dragHandleContainer > div, .descriptive-row + #actionContainer > div {
+        .descriptive-row + #dragHandleContainer > div, .descriptive-row + #actionContainer > div, .descriptive-row + #checkboxContainer > div {
             background-color: #f8f9fa;
             height: 38px;
         }
         .row {
             margin-bottom: 2rem;
             display: flex;
+        }
+        .batch-actions {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: #f8f9fa;
+            border-radius: 0.375rem;
+            border: 1px solid #dee2e6;
+        }
+        .batch-actions .btn {
+            margin-right: 0.5rem;
+        }
+        .row-checkbox {
+            width: 18px;
+            height: 18px;
+        }
+        .selected-row {
+            background-color: #e2f0ff !important;
+        }
+        .selection-info {
+            font-size: 0.875rem;
+            margin-right: 1rem;
         }
         .col-md-6 {
             display: flex;
@@ -505,17 +526,65 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                             </div>
                             <div class="col-md-3 text-center">
                                 <?php if ($can_edit): ?>
-                                <div class="logo-upload-box" id="logoUploadBox">
+                                <div class="logo-upload-box" id="logoUploadBox" data-bs-toggle="modal" data-bs-target="#logoModal">
                                     <?php if (!empty($timetable['logo'])): ?>
                                         <img src="<?php echo htmlspecialchars($timetable['logo']); ?>" id="logoPreview" class="competition-logo mb-2" alt="Logo">
-                                        <p class="mb-0 d-none" id="uploadText">Carica il logo qui</p>
+                                        <p class="mb-0 d-none" id="uploadText">Clicca per modificare il logo</p>
                                     <?php else: ?>
                                         <i class="bi bi-cloud-upload"></i>
-                                        <p class="mb-0" id="uploadText">Carica il logo qui</p>
+                                        <p class="mb-0" id="uploadText">Clicca per selezionare o caricare un logo</p>
                                         <img id="logoPreview" class="competition-logo mb-2 d-none" alt="Logo">
                                     <?php endif; ?>
                                 </div>
                                 <input type="file" class="d-none" id="logoUpload" accept="image/*">
+                                
+                                <!-- Logo Modal -->
+                                <div class="modal fade" id="logoModal" tabindex="-1" aria-labelledby="logoModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="logoModalLabel">Seleziona o Carica Logo</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <ul class="nav nav-tabs mb-3" id="logoTabs" role="tablist">
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link active" id="existing-tab" data-bs-toggle="tab" data-bs-target="#existing" type="button" role="tab">Loghi Esistenti</button>
+                                                    </li>
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">Carica Nuovo</button>
+                                                    </li>
+                                                </ul>
+                                                <div class="tab-content" id="logoTabsContent">
+                                                    <div class="tab-pane fade show active" id="existing" role="tabpanel">
+                                                        <div class="row g-3" id="existingLogos">
+                                                            <?php
+                                                            $stmt = $conn->prepare("SELECT * FROM definizioni WHERE definition_parent = 'logo' ORDER BY definition ASC");
+                                                            $stmt->execute();
+                                                            $logos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                                                            foreach ($logos as $logo): ?>
+                                                                <div class="col-md-3 text-center">
+                                                                    <div class="logo-item p-2 border rounded cursor-pointer" onclick="selectLogo('<?php echo htmlspecialchars($logo['image_path']); ?>')">
+                                                                        <img src="<?php echo htmlspecialchars($logo['image_path']); ?>" class="img-fluid mb-2" alt="<?php echo htmlspecialchars($logo['definition']); ?>">
+                                                                        <p class="mb-0 small"><?php echo htmlspecialchars($logo['definition']); ?></p>
+                                                                    </div>
+                                                                </div>
+                                                            <?php endforeach; ?>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tab-pane fade" id="upload" role="tabpanel">
+                                                        <div class="text-center p-4 border rounded">
+                                                            <i class="bi bi-cloud-upload fs-1 mb-3"></i>
+                                                            <p>Trascina un file qui o clicca per selezionare</p>
+                                                            <input type="file" class="d-none" id="newLogoUpload" accept="image/*">
+                                                            <button class="btn btn-primary" onclick="document.getElementById('newLogoUpload').click()">Seleziona File</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <?php else: ?>
                                 <div class="text-center">
                                     <?php if (!empty($timetable['logo'])): ?>
@@ -672,7 +741,25 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                 </div>
             </div>
             <div class="card-body">
+                <?php if ($can_edit): ?>
+                <div class="batch-actions">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <span class="selection-info">0 righe selezionate</span>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllBtn">Seleziona Tutte</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAllBtn">Deseleziona Tutte</button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary btn-sm" id="batchPannelloBtn" disabled>Assegna Pannello</button>
+                            <button type="button" class="btn btn-warning btn-sm" id="batchEditBtn" disabled>Modifica in Batch</button>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
                 <div class="d-flex">
+                    <?php if ($can_edit): ?>
+                    <div class="me-2" id="checkboxContainer" style="width: 30px;"></div>
+                    <?php endif; ?>
                     <div class="me-2" id="dragHandleContainer" style="width: 30px;"></div>
                     <div class="flex-grow-1">
                         <div class="table-responsive">
@@ -700,6 +787,63 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                 </div>
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
+                        // Gestione del logo
+                        const newLogoUpload = document.getElementById('newLogoUpload');
+                        if (newLogoUpload) {
+                            newLogoUpload.addEventListener('change', function(e) {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    const formData = new FormData();
+                                    formData.append('logo_image', file);
+                                    formData.append('timetable_id', '<?php echo $timetable_id; ?>');
+
+                                    fetch('api/update_logo.php', {
+                                        method: 'POST',
+                                        body: formData
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            document.getElementById('logoPreview').src = data.logo_path;
+                                            document.getElementById('logoPreview').classList.remove('d-none');
+                                            document.getElementById('uploadText').classList.add('d-none');
+                                            $('#logoModal').modal('hide');
+                                        } else {
+                                            alert(data.message);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                    });
+                                }
+                            });
+                        }
+
+                        // Funzione per selezionare un logo esistente
+                        window.selectLogo = function(logoPath) {
+                            fetch('api/update_logo.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: 'timetable_id=<?php echo $timetable_id; ?>&logo=' + encodeURIComponent(logoPath)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    document.getElementById('logoPreview').src = logoPath;
+                                    document.getElementById('logoPreview').classList.remove('d-none');
+                                    document.getElementById('uploadText').classList.add('d-none');
+                                    $('#logoModal').modal('hide');
+                                } else {
+                                    alert(data.message);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                            });
+                        };
+
                         // Add event listener for double print button if needed
                         if(document.getElementById('doppiaPdfBtn')) {
                             document.getElementById('doppiaPdfBtn').addEventListener('click', function() {
@@ -834,6 +978,141 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
         </div>
     </div>
 
+    <!-- Pannello Batch Modal -->
+    <div class="modal fade" id="pannelloBatchModal" tabindex="-1" aria-labelledby="pannelloBatchModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pannelloBatchModalLabel">Assegna Pannello</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <small><i class="bi bi-info-circle me-2"></i>Inserisci il pannello da assegnare a tutte le righe selezionate.</small>
+                    </div>
+                    <form id="pannelloBatchForm">
+                        <div class="mb-3">
+                            <label for="batchPannelloValue" class="form-label">Pannello</label>
+                            <input type="text" class="form-control" id="batchPannelloValue" maxlength="5">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-primary" id="saveBatchPannelloBtn">Assegna</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Batch Edit Modal -->
+    <div class="modal fade" id="batchEditModal" tabindex="-1" aria-labelledby="batchEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="batchEditModalLabel">Modifica in Batch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <small><i class="bi bi-info-circle me-2"></i>Seleziona i campi da modificare per tutte le righe selezionate.</small>
+                    </div>
+                    <form id="batchEditForm">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="editBatchDisciplineCheck">
+                                    <label class="form-check-label" for="editBatchDisciplineCheck">Disciplina</label>
+                                </div>
+                                <select class="form-select form-select-sm" id="editBatchDiscipline" disabled>
+                                    <?php foreach ($definizioni['disciplina'] as $def): ?>
+                                        <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="editBatchCategoryCheck">
+                                    <label class="form-check-label" for="editBatchCategoryCheck">Categoria</label>
+                                </div>
+                                <select class="form-select form-select-sm" id="editBatchCategory" disabled>
+                                    <?php foreach ($definizioni['categoria'] as $def): ?>
+                                        <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="editBatchClassCheck">
+                                    <label class="form-check-label" for="editBatchClassCheck">Classe</label>
+                                </div>
+                                <select class="form-select form-select-sm" id="editBatchClass" disabled>
+                                    <?php foreach ($definizioni['classe'] as $def): ?>
+                                        <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="editBatchTypeCheck">
+                                    <label class="form-check-label" for="editBatchTypeCheck">Tipo</label>
+                                </div>
+                                <select class="form-select form-select-sm" id="editBatchType" disabled>
+                                    <?php foreach ($definizioni['tipo'] as $def): ?>
+                                        <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="editBatchTurnoCheck">
+                                    <label class="form-check-label" for="editBatchTurnoCheck">Turno</label>
+                                </div>
+                                <div class="d-flex">
+                                    <input type="number" class="form-control form-control-sm me-2" id="editBatchTurnoNumero" placeholder="N°" min="1" disabled>
+                                    <select class="form-select form-select-sm" id="editBatchTurnoDefinition" disabled>
+                                        <?php foreach ($definizioni['turno'] as $def): ?>
+                                            <option value="<?php echo htmlspecialchars($def['definition']); ?>"><?php echo htmlspecialchars($def['definition']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="editBatchBalliCheck">
+                                    <label class="form-check-label" for="editBatchBalliCheck">Balli</label>
+                                </div>
+                                <input type="number" class="form-control form-control-sm" id="editBatchBalli" min="1" disabled>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="editBatchBatterieCheck">
+                                    <label class="form-check-label" for="editBatchBatterieCheck">Batterie</label>
+                                </div>
+                                <input type="number" class="form-control form-control-sm" id="editBatchBatterie" min="1" disabled>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="editBatchPannelloCheck">
+                                    <label class="form-check-label" for="editBatchPannelloCheck">Pannello</label>
+                                </div>
+                                <input type="text" class="form-control form-control-sm" id="editBatchPannello" maxlength="5" disabled>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-primary" id="saveBatchEditBtn">Salva</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php require_once 'includes/footer.php'; ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -897,16 +1176,19 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                 const scheduleBody = document.getElementById('scheduleBody');
                 const dragHandleContainer = document.getElementById('dragHandleContainer');
                 const actionContainer = document.getElementById('actionContainer');
+                const checkboxContainer = document.getElementById('checkboxContainer');
                 const canEdit = <?php echo $can_edit ? 'true' : 'false'; ?>;
                 
                 scheduleBody.innerHTML = '';
                 dragHandleContainer.innerHTML = '';
                 actionContainer.innerHTML = '';
+                if (checkboxContainer) checkboxContainer.innerHTML = '';
                 
                 rows.forEach(row => {
                     const tr = document.createElement('tr');
                     tr.draggable = canEdit;
                     tr.dataset.rowId = row.id;
+                    tr.dataset.rowType = row.entry_type;
                     if (canEdit) {
                         tr.classList.add('draggable-row');
                     }
@@ -918,6 +1200,13 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                         `;
                         
                         if (canEdit) {
+                            // Add checkbox for descriptive row
+                            if (checkboxContainer) {
+                                const checkboxDiv = document.createElement('div');
+                                checkboxDiv.innerHTML = `<div></div>`; // Empty div for descriptive rows
+                                checkboxContainer.appendChild(checkboxDiv);
+                            }
+                            
                             const dragHandle = document.createElement('div');
                             dragHandle.innerHTML = `<i class="bi bi-grip-vertical drag-handle"></i>`;
                             document.getElementById('dragHandleContainer').appendChild(dragHandle);
@@ -952,6 +1241,13 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                         `;
                         
                         if (canEdit) {
+                            // Add checkbox for normal row
+                            if (checkboxContainer) {
+                                const checkboxDiv = document.createElement('div');
+                                checkboxDiv.innerHTML = `<input type="checkbox" class="row-checkbox" data-row-id="${row.id}" onclick="toggleRowSelection(this, ${row.id})">`;
+                                checkboxContainer.appendChild(checkboxDiv);
+                            }
+                            
                             const dragHandle = document.createElement('div');
                             dragHandle.innerHTML = `<i class="bi bi-grip-vertical drag-handle"></i>`;
                             document.getElementById('dragHandleContainer').appendChild(dragHandle);
@@ -973,6 +1269,9 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                     }
                     scheduleBody.appendChild(tr);
                 });
+                
+                // Update selection count
+                updateSelectionCount();
             }
 
             // Duplicate row function
@@ -992,7 +1291,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                     if (data.success) {
                         updateTimetableDisplay(data.rows);
                     } else {
-                        alert('Errore durante la duplicazione: ' + data.error);
+                        alert('Errore durante la duplicazione: ' + data.message);
                     }
                 })
                 .catch(error => {
@@ -1020,7 +1319,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                         if (data.success) {
                             updateTimetableDisplay(data.rows);
                         } else {
-                            alert('Errore durante l\'eliminazione: ' + data.error);
+                            alert('Errore durante l\'eliminazione: ' + data.message);
                         }
                     })
                     .catch(error => {
@@ -1133,7 +1432,7 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                         bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
                         updateTimetableDisplay(data.rows);
                     } else {
-                        alert('Errore durante il salvataggio: ' + data.error);
+                        alert('Errore durante il salvataggio: ' + data.message);
                     }
                 })
                 .catch(error => {
@@ -1156,6 +1455,121 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                     document.getElementById('editNormalFields').classList.add('hidden');
                 }
             });
+
+            // Toggle row selection
+            window.toggleRowSelection = function(checkbox, rowId) {
+                const tr = document.querySelector(`tr[data-row-id="${rowId}"]`);
+                if (checkbox.checked) {
+                    tr.classList.add('selected-row');
+                } else {
+                    tr.classList.remove('selected-row');
+                }
+                updateSelectionCount();
+                updateBatchButtons();
+            };
+            
+            // Update selection count
+            function updateSelectionCount() {
+                const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                const selectionInfo = document.querySelector('.selection-info');
+                if (selectionInfo) {
+                    selectionInfo.textContent = `${selectedCount} righe selezionate`;
+                }
+            }
+            
+            // Update batch buttons state
+            function updateBatchButtons() {
+                const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                const batchPannelloBtn = document.getElementById('batchPannelloBtn');
+                const batchEditBtn = document.getElementById('batchEditBtn');
+                
+                if (batchPannelloBtn) batchPannelloBtn.disabled = selectedCount === 0;
+                if (batchEditBtn) batchEditBtn.disabled = selectedCount === 0;
+            }
+            
+            // Select all rows
+            if (document.getElementById('selectAllBtn')) {
+                document.getElementById('selectAllBtn').addEventListener('click', function() {
+                    const checkboxes = document.querySelectorAll('.row-checkbox');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = true;
+                        const rowId = checkbox.dataset.rowId;
+                        const tr = document.querySelector(`tr[data-row-id="${rowId}"]`);
+                        if (tr) tr.classList.add('selected-row');
+                    });
+                    updateSelectionCount();
+                    updateBatchButtons();
+                });
+            }
+            
+            // Deselect all rows
+            if (document.getElementById('deselectAllBtn')) {
+                document.getElementById('deselectAllBtn').addEventListener('click', function() {
+                    const checkboxes = document.querySelectorAll('.row-checkbox');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                        const rowId = checkbox.dataset.rowId;
+                        const tr = document.querySelector(`tr[data-row-id="${rowId}"]`);
+                        if (tr) tr.classList.remove('selected-row');
+                    });
+                    updateSelectionCount();
+                    updateBatchButtons();
+                });
+            }
+            
+            // Batch pannello button
+            if (document.getElementById('batchPannelloBtn')) {
+                document.getElementById('batchPannelloBtn').addEventListener('click', function() {
+                    new bootstrap.Modal(document.getElementById('pannelloBatchModal')).show();
+                });
+            }
+            
+            // Batch edit button
+            if (document.getElementById('batchEditBtn')) {
+                document.getElementById('batchEditBtn').addEventListener('click', function() {
+                    new bootstrap.Modal(document.getElementById('batchEditModal')).show();
+                });
+            }
+            
+            // Save batch pannello
+            if (document.getElementById('saveBatchPannelloBtn')) {
+                document.getElementById('saveBatchPannelloBtn').addEventListener('click', function() {
+                    const pannello = document.getElementById('batchPannelloValue').value;
+                    const selectedRows = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(checkbox => parseInt(checkbox.dataset.rowId));
+                    
+                    if (selectedRows.length === 0) {
+                        alert('Nessuna riga selezionata');
+                        return;
+                    }
+                    
+                    fetch('/api/batch_update_timetable_details.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            timetable_id: timetableId,
+                            operation: 'update_pannello',
+                            row_ids: selectedRows,
+                            pannello: pannello
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('pannelloBatchModal')).hide();
+                            updateTimetableDisplay(data.rows);
+                            document.getElementById('batchPannelloValue').value = '';
+                        } else {
+                            alert('Errore durante l\'aggiornamento: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Errore durante l\'aggiornamento');
+                    });
+                });
+            }
 
             // Load initial data
             loadTimetableDetails();
@@ -1209,7 +1623,7 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                     .then(response => response.json())
                     .then(data => {
                         if (!data.success) {
-                            console.error('Reorder failed:', data.error);
+                            console.error('Reorder failed:', data.message);
                             loadTimetableDetails(); // Reload original order if failed
                         }
                     })
@@ -1293,8 +1707,8 @@ const turn = `${turnoNum}° ${turnoDef}`;
                         updateTimetableDisplay(data.rows);
                         resetForm();
                     } else {
-                        console.error('Save failed:', data.error);
-                        alert('Errore durante il salvataggio: ' + data.error);
+                        console.error('Save failed:', data.message);
+                        alert('Errore durante il salvataggio: ' + data.message);
                     }
                 })
                 .catch(error => {
@@ -1343,7 +1757,7 @@ const turn = `${turnoNum}° ${turnoDef}`;
                             .then(response => response.json())
                             .then(data => {
                                 if (!data.success) {
-                                    console.error('Update failed:', data.error);
+                                    console.error('Update failed:', data.message);
                                 }
                             })
                             .catch(error => console.error('Error:', error));

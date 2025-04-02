@@ -236,6 +236,7 @@ function editUser(id) {
 document.getElementById('editUserForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const formData = new FormData(this);
+    formData.append('user_id', document.getElementById('edit_id').value);
     
     fetch('update_user.php', {
         method: 'POST',

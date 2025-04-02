@@ -18,6 +18,18 @@ if ($user['type'] !== 'admin') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
     
+    // Verifica che l'ID esista
+    $stmt = $conn->prepare("SELECT id FROM changelog WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'error' => 'Nota di rilascio non trovata']);
+        exit;
+    }
+    
     // Inizia la transazione
     $conn->begin_transaction();
     
@@ -37,9 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     } catch (Exception $e) {
         $conn->rollback();
         http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Errore durante l\'eliminazione']);
+        echo json_encode(['success' => false, 'error' => 'Errore durante l\'eliminazione: ' . $e->getMessage()]);
     }
 } else {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'ID non specificato']);
-} 
+}

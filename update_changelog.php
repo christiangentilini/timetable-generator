@@ -22,10 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $date = $_POST['date'];
     $items = $_POST['items'];
     
-    // Rimuovi le righe vuote
-    $items = array_filter(explode("\n", $items), function($item) {
-        return trim($item) !== '';
-    });
+    // Assicurati che items sia un array e rimuovi le righe vuote
+    if (!is_array($items)) {
+        $items = array_filter(explode("\n", $items), function($item) {
+            return trim($item) !== '';
+        });
+    } else {
+        $items = array_filter($items, function($item) {
+            return trim($item) !== '';
+        });
+    }
     
     // Inizia la transazione
     $conn->begin_transaction();
@@ -58,4 +64,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     http_response_code(405);
     echo json_encode(['success' => false, 'error' => 'Metodo non consentito']);
-} 
+}
