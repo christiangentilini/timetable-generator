@@ -1533,6 +1533,35 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                 });
             }
             
+            // Gestione attivazione/disattivazione campi nella modale di modifica batch
+            const batchCheckboxes = [
+                { checkbox: 'editBatchDisciplineCheck', field: 'editBatchDiscipline' },
+                { checkbox: 'editBatchCategoryCheck', field: 'editBatchCategory' },
+                { checkbox: 'editBatchClassCheck', field: 'editBatchClass' },
+                { checkbox: 'editBatchTypeCheck', field: 'editBatchType' },
+                { checkbox: 'editBatchTurnoCheck', fields: ['editBatchTurnoNumero', 'editBatchTurnoDefinition'] },
+                { checkbox: 'editBatchBalliCheck', field: 'editBatchBalli' },
+                { checkbox: 'editBatchBatterieCheck', field: 'editBatchBatterie' },
+                { checkbox: 'editBatchPannelloCheck', field: 'editBatchPannello' }
+            ];
+
+            batchCheckboxes.forEach(item => {
+                const checkbox = document.getElementById(item.checkbox);
+                if (checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        if (Array.isArray(item.fields)) {
+                            item.fields.forEach(fieldId => {
+                                const field = document.getElementById(fieldId);
+                                if (field) field.disabled = !this.checked;
+                            });
+                        } else {
+                            const field = document.getElementById(item.field);
+                            if (field) field.disabled = !this.checked;
+                        }
+                    });
+                }
+            });
+
             // Save batch pannello
             if (document.getElementById('saveBatchPannelloBtn')) {
                 document.getElementById('saveBatchPannelloBtn').addEventListener('click', function() {
@@ -1562,6 +1591,88 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                             bootstrap.Modal.getInstance(document.getElementById('pannelloBatchModal')).hide();
                             updateTimetableDisplay(data.rows);
                             document.getElementById('batchPannelloValue').value = '';
+                        } else {
+                            alert('Errore durante l\'aggiornamento: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Errore durante l\'aggiornamento');
+                    });
+                });
+            }
+
+            // Save batch edit
+            if (document.getElementById('saveBatchEditBtn')) {
+                document.getElementById('saveBatchEditBtn').addEventListener('click', function() {
+                    const selectedRows = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(checkbox => parseInt(checkbox.dataset.rowId));
+                    
+                    if (selectedRows.length === 0) {
+                        alert('Nessuna riga selezionata');
+                        return;
+                    }
+                    
+                    // Collect fields data
+                    const fields = {};
+                    
+                    if (document.getElementById('editBatchDisciplineCheck').checked) {
+                        fields.discipline = document.getElementById('editBatchDiscipline').value;
+                    }
+                    if (document.getElementById('editBatchCategoryCheck').checked) {
+                        fields.category = document.getElementById('editBatchCategory').value;
+                    }
+                    if (document.getElementById('editBatchClassCheck').checked) {
+                        fields.class_name = document.getElementById('editBatchClass').value;
+                    }
+                    if (document.getElementById('editBatchTypeCheck').checked) {
+                        fields.type = document.getElementById('editBatchType').value;
+                    }
+                    if (document.getElementById('editBatchTurnoCheck').checked) {
+                        const turnoNum = document.getElementById('editBatchTurnoNumero').value;
+                        const turnoDef = document.getElementById('editBatchTurnoDefinition').value;
+                        fields.turn = `${turnoNum}° ${turnoDef}`;
+                    }
+                    if (document.getElementById('editBatchBalliCheck').checked) {
+                        fields.balli = document.getElementById('editBatchBalli').value;
+                    }
+                    if (document.getElementById('editBatchBatterieCheck').checked) {
+                        fields.batterie = document.getElementById('editBatchBatterie').value;
+                    }
+                    if (document.getElementById('editBatchPannelloCheck').checked) {
+                        fields.pannello = document.getElementById('editBatchPannello').value;
+                    }
+                    
+                    fetch('/api/batch_update_timetable_details.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            timetable_id: timetableId,
+                            operation: 'batch_edit',
+                            row_ids: selectedRows,
+                            fields: fields
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('batchEditModal')).hide();
+                            updateTimetableDisplay(data.rows);
+                            // Reset form
+                            document.getElementById('batchEditForm').reset();
+                            // Disable all fields
+                            batchCheckboxes.forEach(item => {
+                                if (Array.isArray(item.fields)) {
+                                    item.fields.forEach(fieldId => {
+                                        const field = document.getElementById(fieldId);
+                                        if (field) field.disabled = true;
+                                    });
+                                } else {
+                                    const field = document.getElementById(item.field);
+                                    if (field) field.disabled = true;
+                                }
+                            });
                         } else {
                             alert('Errore durante l\'aggiornamento: ' + data.message);
                         }
