@@ -807,7 +807,8 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                             document.getElementById('logoPreview').src = data.logo_path;
                                             document.getElementById('logoPreview').classList.remove('d-none');
                                             document.getElementById('uploadText').classList.add('d-none');
-                                            $('#logoModal').modal('hide');
+                                            const logoModal = bootstrap.Modal.getInstance(document.getElementById('logoModal'));
+                                            logoModal.hide();
                                         } else {
                                             alert(data.message);
                                         }
@@ -834,7 +835,8 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                     document.getElementById('logoPreview').src = logoPath;
                                     document.getElementById('logoPreview').classList.remove('d-none');
                                     document.getElementById('uploadText').classList.add('d-none');
-                                    $('#logoModal').modal('hide');
+                                    const logoModal = bootstrap.Modal.getInstance(document.getElementById('logoModal'));
+                                    logoModal.hide();
                                 } else {
                                     alert(data.message);
                                 }
