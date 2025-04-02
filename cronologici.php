@@ -186,8 +186,39 @@ $stmt->close();
                             <textarea class="form-control" id="disclaimer" name="disclaimer" rows="2" required></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="logo" class="form-label">Logo</label>
-                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*" required>
+                            <ul class="nav nav-tabs" id="logoTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">Carica Logo</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery" type="button" role="tab">Galleria</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content mt-3" id="logoTabsContent">
+                                <div class="tab-pane fade show active" id="upload" role="tabpanel">
+                                    <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                                </div>
+                                <div class="tab-pane fade" id="gallery" role="tabpanel">
+                                    <div class="row g-3" id="logoGallery">
+                                        <?php
+                                        $logos_dir = __DIR__ . '/assets/logos/';
+                                        $logos = glob($logos_dir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+                                        foreach ($logos as $logo) {
+                                            $logo_url = 'assets/logos/' . basename($logo);
+                                            echo '<div class="col-4">
+                                                <div class="card h-100">
+                                                    <img src="' . $logo_url . '" class="card-img-top p-2" alt="Logo">
+                                                    <div class="card-body text-center">
+                                                        <button type="button" class="btn btn-sm btn-primary select-logo" data-logo="' . $logo_url . '">Seleziona</button>
+                                                    </div>
+                                                </div>
+                                            </div>';
+                                        }
+                                        ?>
+                                    </div>
+                                    <input type="hidden" name="selected_logo" id="selected_logo">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -200,5 +231,43 @@ $stmt->close();
     </div>
 
     <?php require_once 'includes/footer.php'; ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestione selezione logo dalla galleria
+    document.querySelectorAll('.select-logo').forEach(button => {
+        button.addEventListener('click', function() {
+            const logoPath = this.dataset.logo;
+            document.getElementById('selected_logo').value = logoPath;
+            
+            // Evidenzia il logo selezionato
+            document.querySelectorAll('.select-logo').forEach(btn => {
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-primary');
+                btn.textContent = 'Seleziona';
+            });
+            this.classList.remove('btn-primary');
+            this.classList.add('btn-success');
+            this.textContent = 'Selezionato';
+            
+            // Disabilita il campo di upload
+            document.getElementById('logo').value = '';
+            document.getElementById('logo').disabled = true;
+        });
+    });
+    
+    // Gestione cambio tab
+    document.getElementById('upload-tab').addEventListener('click', function() {
+        document.getElementById('logo').disabled = false;
+        document.getElementById('selected_logo').value = '';
+        
+        // Resetta i pulsanti della galleria
+        document.querySelectorAll('.select-logo').forEach(btn => {
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+            btn.textContent = 'Seleziona';
+        });
+    });
+});
+</script>
 </body>
 </html>

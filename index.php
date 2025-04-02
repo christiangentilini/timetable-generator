@@ -166,9 +166,48 @@ $user = $result->fetch_assoc();
                 </div>
                 <form action="save_timetable.php" method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="logo" class="form-label">Logo</label>
-                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*" required>
+                        <!-- Nav tabs per la selezione del logo -->
+                        <ul class="nav nav-tabs mb-3" id="logoTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery" type="button" role="tab" aria-controls="gallery" aria-selected="true">Galleria</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="false">Carica Nuovo</button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content mb-3">
+                            <!-- Tab Galleria -->
+                            <div class="tab-pane fade show active" id="gallery" role="tabpanel" aria-labelledby="gallery-tab">
+                                <div class="row" id="logoGallery">
+                                    <?php
+                                    $logos_dir = __DIR__ . '/assets/logos/';
+                                    $logos = glob($logos_dir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+                                    foreach ($logos as $logo) {
+                                        $logo_path = 'assets/logos/' . basename($logo);
+                                        echo '<div class="col-md-3 mb-3">';
+                                        echo '<div class="card h-100">';
+                                        echo '<img src="' . $logo_path . '" class="card-img-top p-2" alt="Logo" style="object-fit: contain; height: 100px;">';
+                                        echo '<div class="card-body text-center">';
+                                        echo '<div class="form-check">';
+                                        echo '<input class="form-check-input" type="radio" name="selected_logo" value="' . $logo_path . '" id="' . basename($logo) . '">';
+                                        echo '<label class="form-check-label" for="' . basename($logo) . '">Seleziona</label>';
+                                        echo '</div>';
+                                        echo '</div>';
+                                        echo '</div>';
+                                        echo '</div>';
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                            <!-- Tab Carica Nuovo -->
+                            <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+                                <div class="mb-3">
+                                    <label for="logo" class="form-label">Carica un nuovo logo</label>
+                                    <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="title" class="form-label">Titolo</label>
