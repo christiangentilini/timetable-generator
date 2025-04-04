@@ -1,6 +1,6 @@
 # Changelog
 
-## Versione 1.0 [WRITED]
+## Versione 1.0 [WRITTEN]
 
 ### Funzionalità Principali
 - Implementazione del sistema di gestione cronologici
@@ -45,3 +45,4 @@
 
 ### Interfaccia e Design
 - Riorganizzata la pagina cronologici con un ordine più chiaro
+- Migliorata la visualizzazione e la generazione dei PDF con una modale integrata e opzioni per la visualizzazione  e la generazione standard o con pannelli

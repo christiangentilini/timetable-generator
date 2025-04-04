@@ -476,10 +476,31 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
     </style>
 </head>
 <body>
+    <!-- Modal per visualizzare il PDF -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel">Anteprima PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="pdfViewer" style="width: 100%; height: 80vh; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><?php echo htmlspecialchars($timetable['titolo']); ?></h2>
             <div>
+                <button type="button" class="btn btn-primary me-2" onclick="openPdfPreview(false)">
+                    <i class="bi bi-file-pdf me-2"></i>Genera PDF
+                </button>
+                <button type="button" class="btn btn-primary me-2" onclick="openPdfPreview(true)">
+                    <i class="bi bi-file-pdf me-2"></i>Genera PDF con Pannelli
+                </button>
                 <?php if ($is_owner): ?>
                 <a href="share_timetable.php?id=<?php echo $timetable_id; ?>" class="btn btn-outline-primary me-2">
                     <i class="bi bi-share me-2"></i>Condividi
@@ -490,6 +511,15 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                 </a>
             </div>
         </div>
+
+        <script>
+        function openPdfPreview(showPannelli) {
+            const pdfViewer = document.getElementById('pdfViewer');
+            pdfViewer.src = 'generate_pdf.php?id=<?php echo $timetable_id; ?>&show_pannello=' + (showPannelli ? 1 : 0);
+            const pdfModal = new bootstrap.Modal(document.getElementById('pdfModal'));
+            pdfModal.show();
+        }
+        </script>
         
         <?php if (!$can_edit): ?>
         <div class="alert alert-info" role="alert">
@@ -736,8 +766,6 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="card-title mb-0">Timetable</h3>
                 <div>
-                    <a href="generate_pdf.php?id=<?php echo $timetable_id; ?>&show_pannello=0" class="btn btn-secondary btn-sm" target="_blank">Stampa Timetable</a>
-                    <a href="generate_pdf.php?id=<?php echo $timetable_id; ?>&show_pannello=1" class="btn btn-secondary btn-sm" target="_blank">Stampa con Pannelli</a>
                 </div>
             </div>
             <div class="card-body">
@@ -1118,6 +1146,14 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
     <?php require_once 'includes/footer.php'; ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Funzione per aprire il PDF nella modale
+            window.openPdfInModal = function(showPannello) {
+                const pdfUrl = 'generate_pdf.php?id=<?php echo $timetable_id; ?>&show_pannello=' + showPannello;
+                document.getElementById('pdfViewer').src = pdfUrl;
+                const pdfModal = new bootstrap.Modal(document.getElementById('pdfModal'));
+                pdfModal.show();
+            };
+
             // Check if Bootstrap is loaded
             console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
             
