@@ -15,11 +15,15 @@ if (!$data) {
 
 // Handle load request
 if ($data['entry_type'] === 'load') {
+    error_log('Loading timetable details for ID: ' . $data['timetable_id']);
+    
     $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY order_number, time_slot");
     $select_stmt->bind_param("i", $data['timetable_id']);
     $select_stmt->execute();
     $result = $select_stmt->get_result();
     $rows = $result->fetch_all(MYSQLI_ASSOC);
+    
+    error_log('Found ' . count($rows) . ' rows');
     
     echo json_encode(['success' => true, 'rows' => $rows]);
     exit;

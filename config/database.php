@@ -1,25 +1,14 @@
 <?php
-// Configurazione del database
-$host = 'localhost';
-$dbname = 'timetable-generator';
-$username = 'root';
-$password = 'root';
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', 'root');
+define('DB_NAME', 'timetable-generator');
 
-try {
-    $conn = new mysqli($host, $username, $password, $dbname);
-    
-    if ($conn->connect_error) {
-        throw new Exception("Connessione fallita: " . $conn->connect_error);
-    }
-    
-    $conn->set_charset("utf8mb4");
-} catch (Exception $e) {
-    die("Errore di connessione al database: " . $e->getMessage());
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-// Funzione per ottenere la connessione al database
-function getDBConnection() {
-    global $conn;
-    return $conn;
-}
+$conn->set_charset("utf8mb4");
 ?>
