@@ -97,10 +97,15 @@ $stmt->close();
 <body>
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>I tuoi Cronologici</h2>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTimetableModal">
-                <i class="bi bi-plus-circle me-2"></i>Nuovo Cronologico
-            </button>
+            <h2>Cronologici</h2>
+            <div>
+                <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#uploadCsvModal">
+                    <i class="bi bi-file-earmark-arrow-up me-2"></i>Genera da CSV
+                </button>
+                <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTimetableModal">
+                    <i class="bi bi-plus-circle me-2"></i>Nuovo Cronologico
+                </a>
+            </div>
         </div>
 
         <?php if (isset($_GET['success'])): ?>
@@ -242,6 +247,43 @@ $stmt->close();
         </div>
     </div>
 
+    <!-- Modal per l'upload del CSV -->
+    <div class="modal fade" id="uploadCsvModal" tabindex="-1" aria-labelledby="uploadCsvModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadCsvModalLabel">Genera Timetable da CSV</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="csvUploadForm">
+                        <div class="mb-3">
+                            <label for="csvFile" class="form-label">Seleziona il file CSV</label>
+                            <input type="file" class="form-control" id="csvFile" accept=".csv" required>
+                            <div class="form-text">
+                                Il file CSV deve contenere le seguenti colonne:<br>
+                                disciplina, categoria, classe, tipo, turno, da, a, balli, batterie
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <h6>Formato del CSV:</h6>
+                            <p class="mb-0">
+                                - Prima riga: intestazioni delle colonne<br>
+                                - Righe successive: dati delle categorie<br>
+                                - I numeri (da, a, balli, batterie) devono essere interi<br>
+                                - Le categorie devono essere: Principianti, Intermedi, Avanzati
+                            </p>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-primary" id="uploadCsvBtn">Genera Timetable</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php require_once 'includes/footer.php'; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -335,6 +377,38 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.remove('btn-success');
             btn.classList.add('btn-primary');
             btn.textContent = 'Seleziona';
+        });
+    });
+
+    // Gestione upload CSV
+    document.getElementById('uploadCsvBtn').addEventListener('click', function() {
+        const fileInput = document.getElementById('csvFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('Seleziona un file CSV');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('csv_file', file);
+        
+        fetch('api/upload_csv.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Timetable generato con successo!');
+                window.location.href = 'configure_timetable.php';
+            } else {
+                alert('Errore: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Si è verificato un errore durante l\'upload del file');
         });
     });
 });
