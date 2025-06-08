@@ -815,6 +815,55 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                 </div>
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
+                        const timetableId = <?php echo json_encode($timetable_id); ?>;
+                        const scheduleBody = document.getElementById('scheduleBody');
+
+                        // Carica le righe dal backend
+                        function loadRows() {
+                            fetch('api/save_timetable_detail.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    entry_type: 'load',
+                                    timetable_id: timetableId
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    scheduleBody.innerHTML = '';
+                                    data.rows.forEach(row => {
+                                        const tr = document.createElement('tr');
+                                        if (row.entry_type === 'descriptive') {
+                                            tr.innerHTML = `<td colspan="12"><b>${row.time_slot ? row.time_slot + ' - ' : ''}${row.description}</b></td>`;
+                                        } else {
+                                            tr.innerHTML = `
+                                                <td>${row.time_slot || ''}</td>
+                                                <td>${row.discipline || ''}</td>
+                                                <td>${row.category || ''}</td>
+                                                <td>${row.class_name || ''}</td>
+                                                <td>${row.type || ''}</td>
+                                                <td>${row.turn || ''}</td>
+                                                <td>${row.da || ''}</td>
+                                                <td>${row.a || ''}</td>
+                                                <td>${row.balli || ''}</td>
+                                                <td>${row.batterie || ''}</td>
+                                                <td>${row.pannello || ''}</td>
+                                            `;
+                                        }
+                                        scheduleBody.appendChild(tr);
+                                    });
+                                } else {
+                                    scheduleBody.innerHTML = '<tr><td colspan="12">Nessuna riga trovata.</td></tr>';
+                                }
+                            })
+                            .catch(() => {
+                                scheduleBody.innerHTML = '<tr><td colspan="12">Errore nel caricamento delle righe.</td></tr>';
+                            });
+                        }
+
+                        loadRows();
+
                         // Gestione del logo
                         const newLogoUpload = document.getElementById('newLogoUpload');
                         if (newLogoUpload) {
