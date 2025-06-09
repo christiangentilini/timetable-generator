@@ -1175,32 +1175,76 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                         console.log('Number of rows received:', data.rows ? data.rows.length : 0);
                         updateTimetableDisplay(data.rows);
                     } else {
-                        console.error('Error loading timetable details:', data.error);
+                        console.error('Error loading timetable:', data.error);
                     }
                 })
                 .catch(error => {
-                    console.error('Error in loadTimetableDetails:', error);
+                    console.error('Error:', error);
                 });
+            }
+
+            // Store rows data globally
+            let rowsData = [];
+
+            // Function to reload timetable data
+            async function reloadTimetableData() {
+                try {
+                    const response = await fetch('api/save_timetable_detail.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            timetable_id: timetableId,
+                            entry_type: 'load'
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        rowsData = data.rows;
+                        updateTimetableDisplay(data.rows);
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.error('Error reloading data:', error);
+                    return false;
+                }
             }
 
             // Update timetable display
             function updateTimetableDisplay(rows) {
+                console.log('Updating display with rows:', rows);
+                // Store the rows data
+                rowsData = rows;
+                
                 const scheduleBody = document.getElementById('scheduleBody');
                 const dragHandleContainer = document.getElementById('dragHandleContainer');
                 const actionContainer = document.getElementById('actionContainer');
                 const checkboxContainer = document.getElementById('checkboxContainer');
                 const canEdit = <?php echo $can_edit ? 'true' : 'false'; ?>;
                 
+                if (!scheduleBody) {
+                    console.error('scheduleBody element not found');
+                    return;
+                }
+                
                 scheduleBody.innerHTML = '';
                 dragHandleContainer.innerHTML = '';
                 actionContainer.innerHTML = '';
                 if (checkboxContainer) checkboxContainer.innerHTML = '';
                 
-                rows.forEach(row => {
+                if (!rows || rows.length === 0) {
+                    console.log('No rows to display');
+                    return;
+                }
+                
+                rows.forEach((row, index) => {
                     const tr = document.createElement('tr');
                     tr.draggable = canEdit;
                     tr.dataset.rowId = row.id;
                     tr.dataset.rowType = row.entry_type;
+                    tr.dataset.rowIndex = index + 1;
                     if (canEdit) {
                         tr.classList.add('draggable-row');
                     }
@@ -1226,9 +1270,9 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                             const actionButton = document.createElement('div');
                             actionButton.innerHTML = `
                                 <div class="d-flex">
-                                    <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
+                                    <button type="button" class="btn btn-warning btn-sm edit-btn" data-row-id="${row.id}"><i class="bi bi-pencil"></i></button>
+                                    <button type="button" class="btn btn-primary btn-sm duplicate-btn" data-row-id="${row.id}"><i class="bi bi-files"></i></button>
+                                    <button type="button" class="btn btn-danger btn-sm delete-btn" data-row-id="${row.id}"><i class="bi bi-trash"></i></button>
                                 </div>
                             `;
                             document.getElementById('actionContainer').appendChild(actionButton);
@@ -1267,9 +1311,9 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                             const actionButton = document.createElement('div');
                             actionButton.innerHTML = `
                                 <div class="d-flex">
-                                    <button class="btn btn-warning btn-sm" onclick="editRow(${row.id})"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-primary btn-sm" onclick="duplicateRow(${row.id})"><i class="bi bi-files"></i></button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteRow(${row.id})"><i class="bi bi-trash"></i></button>
+                                    <button type="button" class="btn btn-warning btn-sm edit-btn" data-row-id="${row.id}"><i class="bi bi-pencil"></i></button>
+                                    <button type="button" class="btn btn-primary btn-sm duplicate-btn" data-row-id="${row.id}"><i class="bi bi-files"></i></button>
+                                    <button type="button" class="btn btn-danger btn-sm delete-btn" data-row-id="${row.id}"><i class="bi bi-trash"></i></button>
                                 </div>
                             `;
                             document.getElementById('actionContainer').appendChild(actionButton);
@@ -1281,14 +1325,52 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                     }
                     scheduleBody.appendChild(tr);
                 });
+
+                // Add event listeners to the action buttons
+                if (canEdit) {
+                    document.querySelectorAll('.edit-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const rowId = this.getAttribute('data-row-id');
+                            editRow(rowId);
+                        });
+                    });
+
+                    document.querySelectorAll('.duplicate-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const rowId = this.getAttribute('data-row-id');
+                            duplicateRow(rowId);
+                        });
+                    });
+
+                    document.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const rowId = this.getAttribute('data-row-id');
+                            deleteRow(rowId);
+                        });
+                    });
+                }
                 
                 // Update selection count
                 updateSelectionCount();
             }
 
+            // Function to refresh the table display
+            function refreshTableDisplay() {
+                const newOrder = Array.from(scheduleBody.querySelectorAll('tr')).map((row, index) => {
+                    const rowId = parseInt(row.dataset.rowId);
+                    const rowData = rowsData.find(r => r.id === rowId);
+                    return {
+                        ...rowData,
+                        order: index + 1
+                    };
+                });
+                rowsData = newOrder;
+                updateTimetableDisplay(newOrder);
+            }
+
             // Duplicate row function
             window.duplicateRow = function(rowId) {
-                fetch('/api/duplicate_timetable_detail.php', {
+                fetch('api/duplicate_timetable_detail.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1315,7 +1397,7 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
             // Delete row function
             window.deleteRow = function(rowId) {
                 if (confirm('Sei sicuro di voler eliminare questa riga?')) {
-                    fetch('/api/save_timetable_detail.php', {
+                    fetch('api/save_timetable_detail.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1343,52 +1425,52 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
 
             // Edit row function
             window.editRow = function(rowId) {
-                fetch(`/api/save_timetable_detail.php?id=${timetableId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        timetable_id: timetableId,
-                        entry_type: 'load'
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const row = data.rows.find(r => r.id === rowId);
-                        if (row) {
-                            document.getElementById('editRowId').value = row.id;
-                            document.getElementById('editTime').value = row.time_slot;
-                            
-                            if (row.entry_type === 'descriptive') {
-                                document.getElementById('editDescriptiveRowType').checked = true;
-                                document.getElementById('editDescription').value = row.description;
-                                document.getElementById('editDescriptiveFields').classList.remove('hidden');
-                                document.getElementById('editNormalFields').classList.add('hidden');
-                            } else {
-                                document.getElementById('editNormalRowType').checked = true;
-                                document.getElementById('editDiscipline').value = row.discipline || '';
-                                document.getElementById('editCategory').value = row.category || '';
-                                document.getElementById('editClass').value = row.class_name || '';
-                                document.getElementById('editType').value = row.type || 'Solo';
-                                const [editTurnoNum, editTurnoDef] = row.turn.split('° ');
-document.getElementById('edit_turno_numero').value = editTurnoNum;
-document.getElementById('edit_turno_definition').value = editTurnoDef;
-                                document.getElementById('editStartNumber').value = row.da || '';
-                                document.getElementById('editEndNumber').value = row.a || '';
-                                document.getElementById('editDances').value = row.balli || '';
-                                document.getElementById('editHeats').value = row.batterie || '';
-                                document.getElementById('editPannello').value = row.pannello || '';
-                                document.getElementById('editNormalFields').classList.remove('hidden');
-                                document.getElementById('editDescriptiveFields').classList.add('hidden');
-                            }
-                            
-                            new bootstrap.Modal(document.getElementById('editModal')).show();
+                console.log('Editing row:', rowId);
+                // Use the stored rows data instead of fetching from server
+                const row = rowsData.find(r => r.id === parseInt(rowId));
+                console.log('Found row:', row);
+                
+                if (row) {
+                    document.getElementById('editRowId').value = row.id;
+                    document.getElementById('editTime').value = row.time_slot;
+                    
+                    if (row.entry_type === 'descriptive') {
+                        document.getElementById('editDescriptiveRowType').checked = true;
+                        document.getElementById('editDescription').value = row.description;
+                        document.getElementById('editDescriptiveFields').classList.remove('hidden');
+                        document.getElementById('editNormalFields').classList.add('hidden');
+                    } else {
+                        document.getElementById('editNormalRowType').checked = true;
+                        document.getElementById('editDiscipline').value = row.discipline || '';
+                        document.getElementById('editCategory').value = row.category || '';
+                        document.getElementById('editClass').value = row.class_name || '';
+                        document.getElementById('editType').value = row.type || 'Solo';
+                        
+                        // Parse turn value
+                        const turnMatch = row.turn ? row.turn.match(/(\d+)°\s*(.+)/) : null;
+                        if (turnMatch) {
+                            document.getElementById('edit_turno_numero').value = turnMatch[1];
+                            document.getElementById('edit_turno_definition').value = turnMatch[2].trim();
+                        } else {
+                            document.getElementById('edit_turno_numero').value = '';
+                            document.getElementById('edit_turno_definition').value = '';
                         }
+                        
+                        document.getElementById('editStartNumber').value = row.da || '';
+                        document.getElementById('editEndNumber').value = row.a || '';
+                        document.getElementById('editDances').value = row.balli || '';
+                        document.getElementById('editHeats').value = row.batterie || '';
+                        document.getElementById('editPannello').value = row.pannello || '';
+                        document.getElementById('editNormalFields').classList.remove('hidden');
+                        document.getElementById('editDescriptiveFields').classList.add('hidden');
                     }
-                })
-                .catch(error => console.error('Error:', error));
+                    
+                    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+                    editModal.show();
+                } else {
+                    console.error('Row not found:', rowId);
+                    alert('Errore: riga non trovata');
+                }
             };
 
             // Save edited row
@@ -1422,8 +1504,8 @@ document.getElementById('edit_turno_definition').value = editTurnoDef;
                     formData.class_name = document.getElementById('editClass').value;
                     formData.type = document.getElementById('editType').value;
                     const editTurnoNum = document.getElementById('edit_turno_numero').value;
-const editTurnoDef = document.getElementById('edit_turno_definition').value;
-formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
+                    const editTurnoDef = document.getElementById('edit_turno_definition').value;
+                    formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                     formData.da = document.getElementById('editStartNumber').value;
                     formData.a = document.getElementById('editEndNumber').value;
                     formData.balli = document.getElementById('editDances').value;
@@ -1431,7 +1513,7 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                     formData.pannello = document.getElementById('editPannello').value;
                 }
                 
-                fetch('/api/edit_timetable_detail.php', {
+                fetch('api/edit_timetable_detail.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1542,32 +1624,31 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                     new bootstrap.Modal(document.getElementById('batchEditModal')).show();
                 });
             }
-            
-            // Gestione attivazione/disattivazione campi nella modale di modifica batch
-            const batchCheckboxes = [
-                { checkbox: 'editBatchDisciplineCheck', field: 'editBatchDiscipline' },
-                { checkbox: 'editBatchCategoryCheck', field: 'editBatchCategory' },
-                { checkbox: 'editBatchClassCheck', field: 'editBatchClass' },
-                { checkbox: 'editBatchTypeCheck', field: 'editBatchType' },
-                { checkbox: 'editBatchTurnoCheck', fields: ['editBatchTurnoNumero', 'editBatchTurnoDefinition'] },
-                { checkbox: 'editBatchBalliCheck', field: 'editBatchBalli' },
-                { checkbox: 'editBatchBatterieCheck', field: 'editBatchBatterie' },
-                { checkbox: 'editBatchPannelloCheck', field: 'editBatchPannello' }
-            ];
 
-            batchCheckboxes.forEach(item => {
-                const checkbox = document.getElementById(item.checkbox);
+            // Gestione delle checkbox nella modale di modifica in batch
+            const batchCheckboxes = {
+                'editBatchDisciplineCheck': 'editBatchDiscipline',
+                'editBatchCategoryCheck': 'editBatchCategory',
+                'editBatchClassCheck': 'editBatchClass',
+                'editBatchTypeCheck': 'editBatchType',
+                'editBatchTurnoCheck': ['editBatchTurnoNumero', 'editBatchTurnoDefinition'],
+                'editBatchBalliCheck': 'editBatchBalli',
+                'editBatchBatterieCheck': 'editBatchBatterie',
+                'editBatchPannelloCheck': 'editBatchPannello'
+            };
+
+            // Aggiungi event listener per ogni checkbox
+            Object.entries(batchCheckboxes).forEach(([checkboxId, inputIds]) => {
+                const checkbox = document.getElementById(checkboxId);
                 if (checkbox) {
                     checkbox.addEventListener('change', function() {
-                        if (Array.isArray(item.fields)) {
-                            item.fields.forEach(fieldId => {
-                                const field = document.getElementById(fieldId);
-                                if (field) field.disabled = !this.checked;
-                            });
-                        } else {
-                            const field = document.getElementById(item.field);
-                            if (field) field.disabled = !this.checked;
-                        }
+                        const inputs = Array.isArray(inputIds) ? inputIds : [inputIds];
+                        inputs.forEach(inputId => {
+                            const input = document.getElementById(inputId);
+                            if (input) {
+                                input.disabled = !this.checked;
+                            }
+                        });
                     });
                 }
             });
@@ -1583,7 +1664,7 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                         return;
                     }
                     
-                    fetch('/api/batch_update_timetable_details.php', {
+                    fetch('api/batch_update_timetable_details.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1621,8 +1702,8 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                         alert('Nessuna riga selezionata');
                         return;
                     }
-                    
-                    // Collect fields data
+
+                    // Raccogli i campi modificati
                     const fields = {};
                     
                     if (document.getElementById('editBatchDisciplineCheck').checked) {
@@ -1651,8 +1732,14 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                     if (document.getElementById('editBatchPannelloCheck').checked) {
                         fields.pannello = document.getElementById('editBatchPannello').value;
                     }
-                    
-                    fetch('/api/batch_update_timetable_details.php', {
+
+                    // Verifica che almeno un campo sia stato selezionato per la modifica
+                    if (Object.keys(fields).length === 0) {
+                        alert('Seleziona almeno un campo da modificare');
+                        return;
+                    }
+
+                    fetch('api/batch_update_timetable_details.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1670,17 +1757,23 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                             bootstrap.Modal.getInstance(document.getElementById('batchEditModal')).hide();
                             updateTimetableDisplay(data.rows);
                             // Reset form
-                            document.getElementById('batchEditForm').reset();
-                            // Disable all fields
-                            batchCheckboxes.forEach(item => {
-                                if (Array.isArray(item.fields)) {
-                                    item.fields.forEach(fieldId => {
-                                        const field = document.getElementById(fieldId);
-                                        if (field) field.disabled = true;
+                            Object.keys(batchCheckboxes).forEach(checkboxId => {
+                                const checkbox = document.getElementById(checkboxId);
+                                if (checkbox) {
+                                    checkbox.checked = false;
+                                    const inputIds = batchCheckboxes[checkboxId];
+                                    const inputs = Array.isArray(inputIds) ? inputIds : [inputIds];
+                                    inputs.forEach(inputId => {
+                                        const input = document.getElementById(inputId);
+                                        if (input) {
+                                            input.disabled = true;
+                                            if (input.tagName === 'SELECT') {
+                                                input.selectedIndex = 0;
+                                            } else {
+                                                input.value = '';
+                                            }
+                                        }
                                     });
-                                } else {
-                                    const field = document.getElementById(item.field);
-                                    if (field) field.disabled = true;
                                 }
                             });
                         } else {
@@ -1700,60 +1793,241 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
             // Drag and drop functionality
             const scheduleBody = document.getElementById('scheduleBody');
             let draggedRow = null;
+            let draggedRowIndex = null;
+            let dropIndicator = null;
             const canEdit = <?php echo $can_edit ? 'true' : 'false'; ?>;
 
             if (canEdit) {
+                // Create drop indicator element
+                dropIndicator = document.createElement('div');
+                dropIndicator.className = 'drop-indicator';
+                dropIndicator.style.cssText = `
+                    position: absolute;
+                    height: 2px;
+                    background-color: #007bff;
+                    left: 0;
+                    right: 0;
+                    pointer-events: none;
+                    display: none;
+                    z-index: 1000;
+                `;
+                document.body.appendChild(dropIndicator);
+
+                // Add styles for drag and drop
+                const style = document.createElement('style');
+                style.textContent = `
+                    .dragging {
+                        opacity: 0.5;
+                        background-color: #f8f9fa !important;
+                        cursor: move;
+                    }
+                    .drag-over {
+                        background-color: #e9ecef !important;
+                    }
+                    .drop-indicator {
+                        transition: transform 0.2s ease;
+                    }
+                    tr {
+                        transition: transform 0.2s ease, background-color 0.2s ease;
+                    }
+                    tr.drag-over {
+                        transform: translateY(2px);
+                    }
+                `;
+                document.head.appendChild(style);
+
                 scheduleBody.addEventListener('dragstart', (e) => {
-                    draggedRow = e.target.closest('tr');
-                    e.target.style.opacity = '0.5';
+                    const row = e.target.closest('tr');
+                    if (!row) return;
+                    
+                    draggedRow = row;
+                    draggedRowIndex = Array.from(scheduleBody.querySelectorAll('tr')).indexOf(row);
+                    row.classList.add('dragging');
+                    
+                    // Set drag image
+                    const dragImage = row.cloneNode(true);
+                    dragImage.style.width = row.offsetWidth + 'px';
+                    dragImage.style.position = 'absolute';
+                    dragImage.style.top = '-1000px';
+                    document.body.appendChild(dragImage);
+                    e.dataTransfer.setDragImage(dragImage, 0, 0);
+                    setTimeout(() => document.body.removeChild(dragImage), 0);
                 });
 
                 scheduleBody.addEventListener('dragend', (e) => {
-                    e.target.style.opacity = '';
+                    if (draggedRow) {
+                        draggedRow.classList.remove('dragging');
+                        draggedRow = null;
+                        draggedRowIndex = null;
+                    }
+                    dropIndicator.style.display = 'none';
+                    document.querySelectorAll('tr.drag-over').forEach(tr => tr.classList.remove('drag-over'));
                 });
 
                 scheduleBody.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     const row = e.target.closest('tr');
-                    if (row && row !== draggedRow) {
-                        const rect = row.getBoundingClientRect();
-                        const midpoint = rect.top + rect.height / 2;
-                        if (e.clientY < midpoint) {
-                            row.parentNode.insertBefore(draggedRow, row);
-                        } else {
-                            row.parentNode.insertBefore(draggedRow, row.nextSibling);
-                        }
+                    if (!row || row === draggedRow) return;
+
+                    const rect = row.getBoundingClientRect();
+                    const midpoint = rect.top + rect.height / 2;
+                    const indicatorPosition = e.clientY < midpoint ? rect.top : rect.bottom;
+
+                    dropIndicator.style.display = 'block';
+                    dropIndicator.style.top = indicatorPosition + 'px';
+
+                    // Add visual feedback
+                    row.classList.add('drag-over');
+                });
+
+                scheduleBody.addEventListener('dragleave', (e) => {
+                    const row = e.target.closest('tr');
+                    if (row) {
+                        row.classList.remove('drag-over');
                     }
                 });
 
-                scheduleBody.addEventListener('dragend', (e) => {
+                // Function to update row order in database
+                async function updateRowOrder(newOrder) {
+                    try {
+                        const response = await fetch('api/update_timetable_order.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                timetable_id: timetableId,
+                                order_data: newOrder.map((row, index) => ({
+                                    id: row.id,
+                                    order: index + 1
+                                }))
+                            })
+                        });
+                        const data = await response.json();
+                        if (!data.success) {
+                            throw new Error(data.message || 'Errore durante il riordinamento');
+                        }
+                        return true;
+                    } catch (error) {
+                        console.error('Error updating order:', error);
+                        return false;
+                    }
+                }
+
+                // Update the drag and drop handler
+                scheduleBody.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    const row = e.target.closest('tr');
+                    if (!row || !draggedRow) return;
+
                     const rows = Array.from(scheduleBody.querySelectorAll('tr'));
-                    const orderData = rows.map((row, index) => ({
+                    const dropIndex = rows.indexOf(row);
+                    const rect = row.getBoundingClientRect();
+                    const midpoint = rect.top + rect.height / 2;
+                    const insertAfter = e.clientY > midpoint;
+
+                    // Store the original position in case we need to revert
+                    const originalPosition = {
+                        row: draggedRow,
+                        index: draggedRowIndex,
+                        rowsData: [...rowsData]
+                    };
+
+                    // Move the row to the new position
+                    if (insertAfter) {
+                        row.parentNode.insertBefore(draggedRow, row.nextSibling);
+                    } else {
+                        row.parentNode.insertBefore(draggedRow, row);
+                    }
+
+                    // Get the new order of rows
+                    const updatedRows = Array.from(scheduleBody.querySelectorAll('tr'));
+                    
+                    // Update row indices
+                    updatedRows.forEach((row, index) => {
+                        row.dataset.rowIndex = index + 1;
+                    });
+
+                    // Show loading state
+                    draggedRow.style.opacity = '0.7';
+                    draggedRow.style.pointerEvents = 'none';
+
+                    // Remove visual feedback
+                    row.classList.remove('drag-over');
+                    dropIndicator.style.display = 'none';
+
+                    // Get the new order for the database update
+                    const newOrder = updatedRows.map((row, index) => ({
                         id: parseInt(row.dataset.rowId),
                         order: index + 1
                     }));
 
-                    fetch('/api/update_timetable_order.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            timetable_id: timetableId,
-                            order_data: orderData
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success) {
-                            console.error('Reorder failed:', data.message);
-                            loadTimetableDetails(); // Reload original order if failed
+                    try {
+                        // Update the database
+                        const response = await fetch('api/update_timetable_order.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                timetable_id: timetableId,
+                                order_data: newOrder
+                            })
+                        });
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Reload all data from server to ensure synchronization
+                            await reloadTimetableData();
+                        } else {
+                            throw new Error(data.message || 'Errore durante il riordinamento');
                         }
-                    })
-                    .catch(error => {
+                    } catch (error) {
                         console.error('Error:', error);
-                        loadTimetableDetails(); // Reload original order if failed
-                    });
+                        // Revert to original position
+                        const rows = Array.from(scheduleBody.querySelectorAll('tr'));
+                        if (originalPosition.index < rows.length) {
+                            rows[originalPosition.index].parentNode.insertBefore(
+                                originalPosition.row,
+                                rows[originalPosition.index]
+                            );
+                        } else {
+                            scheduleBody.appendChild(originalPosition.row);
+                        }
+                        // Revert rowsData to original order
+                        rowsData = originalPosition.rowsData;
+                        
+                        // Update row indices after revert
+                        const revertedRows = Array.from(scheduleBody.querySelectorAll('tr'));
+                        revertedRows.forEach((row, index) => {
+                            row.dataset.rowIndex = index + 1;
+                        });
+                        
+                        // Show error message
+                        const errorToast = document.createElement('div');
+                        errorToast.className = 'toast align-items-center text-white bg-danger border-0 position-fixed bottom-0 end-0 m-3';
+                        errorToast.setAttribute('role', 'alert');
+                        errorToast.setAttribute('aria-live', 'assertive');
+                        errorToast.setAttribute('aria-atomic', 'true');
+                        errorToast.innerHTML = `
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    Errore durante il riordinamento. Riprova.
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        `;
+                        document.body.appendChild(errorToast);
+                        const toast = new bootstrap.Toast(errorToast);
+                        toast.show();
+                        setTimeout(() => {
+                            document.body.removeChild(errorToast);
+                        }, 3000);
+                    } finally {
+                        // Remove loading state
+                        draggedRow.style.opacity = '';
+                        draggedRow.style.pointerEvents = '';
+                    }
                 });
             }
 
@@ -1786,8 +2060,8 @@ formData.turn = `${editTurnoNum}° ${editTurnoDef}`;
                     const class_name = document.getElementById('className').value;
                     const type = document.getElementById('type').value;
                     const turnoNum = document.getElementById('turno_numero').value;
-const turnoDef = document.getElementById('turno_definition').value;
-const turn = `${turnoNum}° ${turnoDef}`;
+                    const turnoDef = document.getElementById('turno_definition').value;
+                    const turn = `${turnoNum}° ${turnoDef}`;
                     const da = document.getElementById('startNumber').value;
                     const a = document.getElementById('endNumber').value;
                     const balli = document.getElementById('dances').value;
@@ -1812,12 +2086,7 @@ const turn = `${turnoNum}° ${turnoDef}`;
                     });
                 }
                 
-                saveFormData(formData);
-            });
-
-            // Common function to save form data
-            function saveFormData(formData) {
-                fetch('/api/save_timetable_detail.php', {
+                fetch('api/save_timetable_detail.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1838,7 +2107,7 @@ const turn = `${turnoNum}° ${turnoDef}`;
                     console.error('Error:', error);
                     alert('Errore durante il salvataggio');
                 });
-            }
+            });
 
             // Reset form fields
             function resetForm() {
@@ -1856,6 +2125,7 @@ const turn = `${turnoNum}° ${turnoDef}`;
                 document.getElementById('heats').value = '';
             }
 
+            // Update timetable fields
             let updateTimeout;
             updateFields.forEach(fieldId => {
                 const element = document.getElementById(fieldId);
@@ -1866,7 +2136,7 @@ const turn = `${turnoNum}° ${turnoDef}`;
                         const value = e.target.value;
 
                         updateTimeout = setTimeout(() => {
-                            fetch('/api/update_timetable.php', {
+                            fetch('api/update_timetable.php', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',

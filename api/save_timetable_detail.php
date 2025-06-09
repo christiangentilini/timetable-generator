@@ -3,27 +3,45 @@ header('Content-Type: application/json');
 require_once '../config/database.php';
 require_once '../config/session_check.php';
 
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Log the incoming request
+error_log("Received request: " . file_get_contents('php://input'));
+
 // Decode JSON data
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
 
 // Validate data
 if (!$data) {
+    error_log("Invalid JSON data received");
     echo json_encode(['success' => false, 'error' => 'Invalid JSON data']);
     exit;
 }
 
 // Handle load request
 if ($data['entry_type'] === 'load') {
-    error_log('Loading timetable details for ID: ' . $data['timetable_id']);
+    error_log("Loading timetable details for ID: " . $data['timetable_id']);
     
     $select_stmt = $conn->prepare("SELECT * FROM timetable_details WHERE timetable_id = ? ORDER BY order_number, time_slot");
+    if (!$select_stmt) {
+        error_log("Prepare failed: " . $conn->error);
+        echo json_encode(['success' => false, 'error' => 'Database prepare failed']);
+        exit;
+    }
+    
     $select_stmt->bind_param("i", $data['timetable_id']);
-    $select_stmt->execute();
+    if (!$select_stmt->execute()) {
+        error_log("Execute failed: " . $select_stmt->error);
+        echo json_encode(['success' => false, 'error' => 'Database execute failed']);
+        exit;
+    }
+    
     $result = $select_stmt->get_result();
     $rows = $result->fetch_all(MYSQLI_ASSOC);
-    
-    error_log('Found ' . count($rows) . ' rows');
+    error_log("Found " . count($rows) . " rows");
     
     echo json_encode(['success' => true, 'rows' => $rows]);
     exit;
