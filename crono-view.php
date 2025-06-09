@@ -767,16 +767,16 @@ $pageTitle = "Nuovo Cronologico - Timetable Generator";
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 30px; text-align: center;">Orario</th>
-                                        <th style="width: 100px; text-align: center;">Disciplina</th>
-                                        <th style="width: 40px; text-align: center;">Categoria</th>
-                                        <th style="width: 35px; text-align: center;">Classe</th>
+                                        <th style="width: 220px; text-align: center;">Disciplina</th>
+                                        <th style="width: 100px; text-align: center;">Categoria</th>
+                                        <th style="width: 100px; text-align: center;">Classe</th>
                                         <th style="width: 100px; text-align: center;">Tipo</th>
                                         <th style="width: 100px; text-align: center;">Turno</th>
                                         <th style="width: 35px; text-align: center;">Da</th>
                                         <th style="width: 35px; text-align: center;">A</th>
-                                        <th style="width: 35px; text-align: center;">Balli</th>
-                                        <th style="width: 15px; text-align: center;">Batterie</th>
-                                        <th style="width: 35px; text-align: center;">Pannello</th>
+                                        <th style="width: 20px; text-align: center;">Balli</th>
+                                        <th style="width: 3px; text-align: center;">Batterie</th>
+                                        <th style="width: 20px; text-align: center;">Pannello</th>
                                     </tr>
                                 </thead>
                                 <tbody id="scheduleBody"></tbody>
