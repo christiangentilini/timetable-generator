@@ -165,65 +165,115 @@ $stmt->close();
                 </div>
                 <form action="save_timetable.php" method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="titolo" class="form-label">Titolo</label>
-                            <input type="text" class="form-control" id="titolo" name="titolo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="sottotitolo" class="form-label">Sottotitolo</label>
-                            <input type="text" class="form-control" id="sottotitolo" name="sottotitolo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="desc1" class="form-label">Descrizione 1</label>
-                            <textarea class="form-control" id="desc1" name="desc1" rows="2" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="desc2" class="form-label">Descrizione 2</label>
-                            <textarea class="form-control" id="desc2" name="desc2" rows="2" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="disclaimer" class="form-label">Disclaimer</label>
-                            <textarea class="form-control" id="disclaimer" name="disclaimer" rows="2" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <ul class="nav nav-tabs" id="logoTabs" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">Carica Logo</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery" type="button" role="tab">Galleria</button>
-                                </li>
-                            </ul>
-                            <div class="tab-content mt-3" id="logoTabsContent">
-                                <div class="tab-pane fade show active" id="upload" role="tabpanel">
-                                    <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs mb-3" id="newTimetableTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="true">Manuale</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="csv-tab" data-bs-toggle="tab" data-bs-target="#csv" type="button" role="tab" aria-controls="csv" aria-selected="false">Importa CSV</button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content" id="newTimetableTabsContent">
+                            <!-- Manual Tab -->
+                            <div class="tab-pane fade show active" id="manual" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="titolo" class="form-label">Titolo</label>
+                                    <input type="text" class="form-control" id="titolo" name="titolo" required>
                                 </div>
-                                <div class="tab-pane fade" id="gallery" role="tabpanel">
-                                    <div class="row g-3" id="logoGallery">
-                                        <?php
-                                        $logos_dir = __DIR__ . '/assets/logos/';
-                                        $logos = glob($logos_dir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
-                                        foreach ($logos as $logo) {
-                                            $logo_url = 'assets/logos/' . basename($logo);
-                                            echo '<div class="col-4">
-                                                <div class="card h-100">
-                                                    <img src="' . $logo_url . '" class="card-img-top p-2" alt="Logo">
-                                                    <div class="card-body text-center">
-                                                        <button type="button" class="btn btn-sm btn-primary select-logo" data-logo="' . $logo_url . '">Seleziona</button>
-                                                    </div>
-                                                </div>
-                                            </div>';
-                                        }
-                                        ?>
+                                <div class="mb-3">
+                                    <label for="sottotitolo" class="form-label">Sottotitolo</label>
+                                    <input type="text" class="form-control" id="sottotitolo" name="sottotitolo" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="desc1" class="form-label">Descrizione 1</label>
+                                    <textarea class="form-control" id="desc1" name="desc1" rows="2" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="desc2" class="form-label">Descrizione 2</label>
+                                    <textarea class="form-control" id="desc2" name="desc2" rows="2" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="disclaimer" class="form-label">Disclaimer</label>
+                                    <textarea class="form-control" id="disclaimer" name="disclaimer" rows="2" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <ul class="nav nav-tabs" id="logoTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery" type="button" role="tab" aria-controls="gallery" aria-selected="true">Galleria</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="false">Carica Nuovo</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content mt-3" id="logoTabsContent">
+                                        <div class="tab-pane fade show active" id="gallery" role="tabpanel">
+                                            <div class="row g-3" id="logoGallery">
+                                                <?php
+                                                $logos_dir = __DIR__ . '/assets/logos/';
+                                                $logos = glob($logos_dir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+                                                foreach ($logos as $logo) {
+                                                    $logo_url = 'assets/logos/' . basename($logo);
+                                                    echo '<div class="col-4">
+                                                        <div class="card h-100">
+                                                            <img src="' . $logo_url . '" class="card-img-top p-2" alt="Logo">
+                                                            <div class="card-body text-center">
+                                                                <button type="button" class="btn btn-sm btn-primary select-logo" data-logo="' . $logo_url . '">Seleziona</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>';
+                                                }
+                                                ?>
+                                            </div>
+                                            <input type="hidden" name="selected_logo" id="selected_logo">
+                                        </div>
+                                        <div class="tab-pane fade" id="upload" role="tabpanel">
+                                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                                        </div>
                                     </div>
-                                    <input type="hidden" name="selected_logo" id="selected_logo">
+                                </div>
+                            </div>
+
+                            <!-- CSV Import Tab -->
+                            <div class="tab-pane fade" id="csv" role="tabpanel">
+                                <div class="alert alert-info">
+                                    <small><i class="bi bi-info-circle me-2"></i>Carica un file CSV per importare le voci del cronologico. Il file deve contenere le seguenti colonne: Orario, Disciplina, Categoria, Classe, Tipo, Turno, Da, A, Balli, Batterie, Pannello.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="csvFile" class="form-label">File CSV</label>
+                                    <input type="file" class="form-control" id="csvFile" accept=".csv" required>
+                                </div>
+                                <div id="csvPreview" class="d-none">
+                                    <h6 class="mb-3">Anteprima Importazione</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Orario</th>
+                                                    <th>Disciplina</th>
+                                                    <th>Categoria</th>
+                                                    <th>Classe</th>
+                                                    <th>Tipo</th>
+                                                    <th>Turno</th>
+                                                    <th>Da</th>
+                                                    <th>A</th>
+                                                    <th>Balli</th>
+                                                    <th>Batt.</th>
+                                                    <th>Pan.</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="csvPreviewBody"></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                        <button type="submit" class="btn btn-primary">Salva</button>
+                        <button type="submit" class="btn btn-primary" id="saveTimetableBtn">Salva</button>
                     </div>
                 </form>
             </div>
@@ -233,39 +283,139 @@ $stmt->close();
     <?php require_once 'includes/footer.php'; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gestione selezione logo dalla galleria
+    // Logo selection
     document.querySelectorAll('.select-logo').forEach(button => {
         button.addEventListener('click', function() {
-            const logoPath = this.dataset.logo;
-            document.getElementById('selected_logo').value = logoPath;
-            
-            // Evidenzia il logo selezionato
-            document.querySelectorAll('.select-logo').forEach(btn => {
-                btn.classList.remove('btn-success');
-                btn.classList.add('btn-primary');
-                btn.textContent = 'Seleziona';
-            });
-            this.classList.remove('btn-primary');
-            this.classList.add('btn-success');
-            this.textContent = 'Selezionato';
-            
-            // Disabilita il campo di upload
-            document.getElementById('logo').value = '';
-            document.getElementById('logo').disabled = true;
+            document.getElementById('selected_logo').value = this.dataset.logo;
         });
     });
-    
-    // Gestione cambio tab
-    document.getElementById('upload-tab').addEventListener('click', function() {
-        document.getElementById('logo').disabled = false;
-        document.getElementById('selected_logo').value = '';
+
+    // CSV Import handling
+    const csvFile = document.getElementById('csvFile');
+    const csvPreview = document.getElementById('csvPreview');
+    const csvPreviewBody = document.getElementById('csvPreviewBody');
+    let csvData = null;
+
+    csvFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const rows = text.split('\n').map(row => row.split(','));
+                const headers = rows[0];
+                
+                // Validate headers
+                const requiredHeaders = ['Orario', 'Disciplina', 'Categoria', 'Classe', 'Tipo', 'Turno', 'Da', 'A', 'Balli', 'Batterie', 'Pannello'];
+                const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+                
+                if (missingHeaders.length > 0) {
+                    alert('Il file CSV non contiene tutte le colonne richieste. Colonne mancanti: ' + missingHeaders.join(', '));
+                    csvFile.value = '';
+                    return;
+                }
+
+                // Store CSV data
+                csvData = rows.slice(1).map(row => {
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        obj[header] = row[index]?.trim() || '';
+                    });
+                    return obj;
+                });
+
+                // Show preview
+                csvPreviewBody.innerHTML = '';
+                csvData.slice(0, 5).forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row['Orario']}</td>
+                        <td>${row['Disciplina']}</td>
+                        <td>${row['Categoria']}</td>
+                        <td>${row['Classe']}</td>
+                        <td>${row['Tipo']}</td>
+                        <td>${row['Turno']}</td>
+                        <td>${row['Da']}</td>
+                        <td>${row['A']}</td>
+                        <td>${row['Balli']}</td>
+                        <td>${row['Batterie']}</td>
+                        <td>${row['Pannello']}</td>
+                    `;
+                    csvPreviewBody.appendChild(tr);
+                });
+
+                csvPreview.classList.remove('d-none');
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // Form submission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
         
-        // Resetta i pulsanti della galleria
-        document.querySelectorAll('.select-logo').forEach(btn => {
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-primary');
-            btn.textContent = 'Seleziona';
-        });
+        const activeTab = document.querySelector('#newTimetableTabs .nav-link.active');
+        if (activeTab.id === 'csv-tab') {
+            // Handle CSV import
+            if (!csvData) {
+                alert('Per favore carica un file CSV valido');
+                return;
+            }
+
+            // First create the timetable
+            const formData = new FormData(this);
+            fetch('save_timetable.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Then import the CSV data
+                    const columnMapping = {
+                        'time_slot': 'Orario',
+                        'discipline': 'Disciplina',
+                        'category': 'Categoria',
+                        'class_name': 'Classe',
+                        'type': 'Tipo',
+                        'turn': 'Turno',
+                        'da': 'Da',
+                        'a': 'A',
+                        'balli': 'Balli',
+                        'batterie': 'Batterie',
+                        'pannello': 'Pannello'
+                    };
+
+                    return fetch('api/import_csv.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            timetable_id: data.timetable_id,
+                            csv_data: csvData,
+                            column_mapping: columnMapping
+                        })
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to create timetable');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = 'crono-view.php?id=' + data.timetable_id;
+                } else {
+                    throw new Error(data.error || 'Failed to import CSV data');
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+        } else {
+            // Handle manual creation
+            this.submit();
+        }
     });
 });
 </script>

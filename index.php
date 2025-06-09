@@ -156,66 +156,45 @@ $user = $result->fetch_assoc();
         </div>
     </div>
 
-    <!-- New Timetable Modal -->
-    <div class="modal fade" id="newTimetableModal" tabindex="-1" aria-labelledby="newTimetableModalLabel" aria-hidden="false">
+    <!-- Selection Modal -->
+    <div class="modal fade" id="selectionModal" tabindex="-1" aria-labelledby="selectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="selectionModalLabel">Nuovo Cronologico</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-grid gap-3">
+                        <button type="button" class="btn btn-primary btn-lg" id="manualEntryBtn">
+                            <i class="bi bi-pencil-square me-2"></i>Inserimento Manuale
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-lg" id="csvImportBtn">
+                            <i class="bi bi-file-earmark-spreadsheet me-2"></i>Importa da CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Entry Modal -->
+    <div class="modal fade" id="manualEntryModal" tabindex="-1" aria-labelledby="manualEntryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="newTimetableModalLabel">Nuovo Cronologico</h5>
+                    <h5 class="modal-title" id="manualEntryModalLabel">Nuovo Cronologico - Inserimento Manuale</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="save_timetable.php" method="POST" enctype="multipart/form-data">
-                    <div class="modal-body">
-                        <!-- Nav tabs per la selezione del logo -->
-                        <ul class="nav nav-tabs mb-3" id="logoTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery" type="button" role="tab" aria-controls="gallery" aria-selected="true">Galleria</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="false">Carica Nuovo</button>
-                            </li>
-                        </ul>
-
-                        <!-- Tab panes -->
-                        <div class="tab-content mb-3">
-                            <!-- Tab Galleria -->
-                            <div class="tab-pane fade show active" id="gallery" role="tabpanel" aria-labelledby="gallery-tab">
-                                <div class="row" id="logoGallery">
-                                    <?php
-                                    $logos_dir = __DIR__ . '/assets/logos/';
-                                    $logos = glob($logos_dir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
-                                    foreach ($logos as $logo) {
-                                        $logo_path = 'assets/logos/' . basename($logo);
-                                        echo '<div class="col-md-3 mb-3">';
-                                        echo '<div class="card h-100">';
-                                        echo '<img src="' . $logo_path . '" class="card-img-top p-2" alt="Logo" style="object-fit: contain; height: 100px;">';
-                                        echo '<div class="card-body text-center">';
-                                        echo '<div class="form-check">';
-                                        echo '<input class="form-check-input" type="radio" name="selected_logo" value="' . $logo_path . '" id="' . basename($logo) . '">';
-                                        echo '<label class="form-check-label" for="' . basename($logo) . '">Seleziona</label>';
-                                        echo '</div>';
-                                        echo '</div>';
-                                        echo '</div>';
-                                        echo '</div>';
-                                    }
-                                    ?>
-                                </div>
-                            </div>
-                            <!-- Tab Carica Nuovo -->
-                            <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
-                                <div class="mb-3">
-                                    <label for="logo" class="form-label">Carica un nuovo logo</label>
-                                    <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
-                                </div>
-                            </div>
+                <div class="modal-body">
+                    <form id="newTimetableForm">
+                        <div class="mb-3">
+                            <label for="titolo" class="form-label">Titolo</label>
+                            <input type="text" class="form-control" id="titolo" name="titolo" required>
                         </div>
                         <div class="mb-3">
-                            <label for="title" class="form-label">Titolo</label>
-                            <input type="text" class="form-control" id="title" name="title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="subtitle" class="form-label">Sottotitolo</label>
-                            <input type="text" class="form-control" id="subtitle" name="subtitle" required>
+                            <label for="sottotitolo" class="form-label">Sottotitolo</label>
+                            <input type="text" class="form-control" id="sottotitolo" name="sottotitolo" required>
                         </div>
                         <div class="mb-3">
                             <label for="desc1" class="form-label">Descrizione 1</label>
@@ -227,14 +206,51 @@ $user = $result->fetch_assoc();
                         </div>
                         <div class="mb-3">
                             <label for="disclaimer" class="form-label">Disclaimer</label>
-                            <textarea class="form-control" id="disclaimer" name="disclaimer" rows="3" required></textarea>
+                            <textarea class="form-control" id="disclaimer" name="disclaimer" rows="2" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="logo" class="form-label">Logo</label>
+                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Crea Cronologico</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSV Import Modal -->
+    <div class="modal fade" id="csvImportModal" tabindex="-1" aria-labelledby="csvImportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="csvImportModalLabel">Nuovo Cronologico - Importa da CSV</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <small><i class="bi bi-info-circle me-2"></i>Carica un file CSV. Nella schermata successiva potrai mappare le colonne del CSV ai campi del sistema.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">File CSV</label>
+                        <input type="file" class="form-control" id="csvFile" accept=".csv">
+                    </div>
+                    <div id="csvPreview" class="d-none">
+                        <h6 class="mb-3">Anteprima CSV (prime 5 righe)</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead id="csvPreviewHeader"></thead>
+                                <tbody id="csvPreviewBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-primary" id="proceedToMapping">Procedi con la Mappatura</button>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                        <button type="submit" class="btn btn-primary">Salva</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -253,5 +269,240 @@ $user = $result->fetch_assoc();
     </div>
 
     <?php require_once 'includes/footer.php'; ?>
+
+    <script>
+        // Show selection modal when clicking "Nuovo Cronologico"
+        document.querySelectorAll('[data-bs-target="#newTimetableModal"]').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const selectionModal = new bootstrap.Modal(document.getElementById('selectionModal'));
+                selectionModal.show();
+            });
+        });
+
+        // Handle manual entry button
+        document.getElementById('manualEntryBtn').addEventListener('click', function() {
+            const selectionModal = bootstrap.Modal.getInstance(document.getElementById('selectionModal'));
+            selectionModal.hide();
+            const manualEntryModal = new bootstrap.Modal(document.getElementById('manualEntryModal'));
+            manualEntryModal.show();
+        });
+
+        // Handle CSV import button
+        document.getElementById('csvImportBtn').addEventListener('click', function() {
+            const selectionModal = bootstrap.Modal.getInstance(document.getElementById('selectionModal'));
+            selectionModal.hide();
+            const csvImportModal = new bootstrap.Modal(document.getElementById('csvImportModal'));
+            csvImportModal.show();
+        });
+
+        // Handle CSV file upload
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    
+                    // Funzione per parsare correttamente il CSV considerando le virgolette
+                    function parseCSV(text) {
+                        const lines = text.split('\n');
+                        const headers = [];
+                        const data = [];
+                        
+                        // Funzione per pulire un valore
+                        function cleanValue(value) {
+                            // Rimuovi le virgolette iniziali e finali se presenti
+                            value = value.replace(/^["']|["']$/g, '');
+                            // Rimuovi gli spazi iniziali e finali
+                            value = value.trim();
+                            return value;
+                        }
+                        
+                        // Funzione per parsare una riga CSV
+                        function parseCSVLine(line) {
+                            const values = [];
+                            let currentValue = '';
+                            let inQuotes = false;
+                            let escapeNext = false;
+                            
+                            for (let i = 0; i < line.length; i++) {
+                                const char = line[i];
+                                
+                                if (escapeNext) {
+                                    currentValue += char;
+                                    escapeNext = false;
+                                    continue;
+                                }
+                                
+                                if (char === '\\') {
+                                    escapeNext = true;
+                                    continue;
+                                }
+                                
+                                if (char === '"') {
+                                    if (inQuotes && line[i + 1] === '"') {
+                                        // Doppie virgolette all'interno di un campo tra virgolette
+                                        currentValue += '"';
+                                        i++; // Salta la prossima virgoletta
+                                    } else {
+                                        inQuotes = !inQuotes;
+                                    }
+                                } else if (char === ',' && !inQuotes) {
+                                    values.push(cleanValue(currentValue));
+                                    currentValue = '';
+                                } else {
+                                    currentValue += char;
+                                }
+                            }
+                            
+                            // Aggiungi l'ultimo valore
+                            values.push(cleanValue(currentValue));
+                            
+                            return values;
+                        }
+                        
+                        // Parsa l'header
+                        if (lines.length > 0) {
+                            headers.push(...parseCSVLine(lines[0]));
+                        }
+                        
+                        // Parsa le righe di dati
+                        for (let i = 1; i < lines.length; i++) {
+                            const line = lines[i].trim();
+                            if (!line) continue;
+                            
+                            const row = parseCSVLine(line);
+                            
+                            // Assicurati che la riga abbia lo stesso numero di colonne dell'header
+                            while (row.length < headers.length) {
+                                row.push('');
+                            }
+                            
+                            // Tronca la riga se ha più colonne dell'header
+                            if (row.length > headers.length) {
+                                row.length = headers.length;
+                            }
+                            
+                            data.push(row);
+                        }
+                        
+                        return { headers, data };
+                    }
+                    
+                    const { headers, data } = parseCSV(text);
+                    
+                    // Debug: stampa i dati parsati
+                    console.log('Headers:', headers);
+                    console.log('First row:', data[0]);
+                    
+                    // Salva i dati CSV nella sessione
+                    fetch('store_csv_data.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            headers: headers,
+                            data: data
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            // Crea un nuovo cronologico vuoto
+                            const formData = new FormData();
+                            formData.append('titolo', 'Nuovo Cronologico');
+                            formData.append('sottotitolo', 'Importato da CSV');
+                            formData.append('desc1', 'Importato da CSV');
+                            formData.append('desc2', 'Importato da CSV');
+                            formData.append('disclaimer', 'Importato da CSV');
+                            formData.append('is_csv_import', '1');
+
+                            fetch('save_timetable.php', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(result => {
+                                if (result.success) {
+                                    // Reindirizza alla pagina di mapping
+                                    window.location.href = 'map_csv.php?id=' + result.timetable_id;
+                                } else {
+                                    alert(result.error || 'Errore durante la creazione del cronologico');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Errore:', error);
+                                alert('Errore durante la creazione del cronologico');
+                            });
+                        } else {
+                            alert(result.error || 'Errore durante il salvataggio dei dati CSV');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                        alert('Errore durante il salvataggio dei dati CSV');
+                    });
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Handle proceed to mapping button
+        document.getElementById('proceedToMapping').addEventListener('click', function() {
+            if (!window.csvData) {
+                alert('Per favore carica un file CSV');
+                return;
+            }
+            
+            // Store CSV data in session
+            fetch('store_csv_data.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(window.csvData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    // Redirect to mapping page
+                    window.location.href = `map_csv.php?timetable_id=${result.timetable_id}`;
+                } else {
+                    alert(result.error || 'Errore durante il salvataggio dei dati CSV');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore durante il salvataggio dei dati CSV');
+            });
+        });
+
+        // Handle manual entry form submission
+        document.getElementById('newTimetableForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('save_timetable.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    window.location.href = `crono-view.php?id=${result.timetable_id}`;
+                } else {
+                    alert(result.error || 'Errore durante il salvataggio del cronologico');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Errore durante il salvataggio del cronologico');
+            }
+        });
+    </script>
 </body>
 </html>
